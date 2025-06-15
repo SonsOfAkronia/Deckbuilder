@@ -1,28 +1,34 @@
-'use client'
+"use client"
+
+import type React from "react"
 
 /* eslint-disable react/no-unescaped-entities */
 
+import { useEffect, useState, useCallback, useMemo } from "react"
+import {
+  Search,
+  Menu,
+  X,
+  BarChart3,
+  Download,
+  Copy,
+  Shuffle,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Plus,
+  Minus,
+} from "lucide-react"
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie } from "recharts"
+import Image from "next/image"
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
-import { Search, Menu, X, BarChart3, Download, Copy, Shuffle, AlertTriangle, CheckCircle, XCircle, Loader2, Plus, Minus } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie } from 'recharts'
-
-const ALL_KEYWORDS = [
-  'DASH',
-  'LEAP',
-  'STALKER',
-  'RECLUSE',
-  'CHEAPSHOT',
-  'REACH',
-  'OVERRUN',
-  'IMMORTAL',
-  'ATTACH',
-]
+const ALL_KEYWORDS = ["DASH", "LEAP", "STALKER", "RECLUSE", "CHEAPSHOT", "REACH", "OVERRUN", "IMMORTAL", "ATTACH"]
 
 type Toast = {
   id: string
   message: string
-  type: 'success' | 'error' | 'warning' | 'info'
+  type: "success" | "error" | "warning" | "info"
   duration?: number
 }
 
@@ -66,20 +72,20 @@ type DeckData = {
   dateModified?: string
 }
 
-type SortOption = 'name' | 'type' | 'tape_cost' | 'attack' | 'health'
+type SortOption = "name" | "type" | "tape_cost" | "attack" | "health"
 
 // Helper function to safely access localStorage
 const safeLocalStorage = {
   getItem: (key: string): string | null => {
     try {
-      return typeof window !== 'undefined' ? localStorage.getItem(key) : null
+      return typeof window !== "undefined" ? localStorage.getItem(key) : null
     } catch {
       return null
     }
   },
   setItem: (key: string, value: string): boolean => {
     try {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.setItem(key, value)
         return true
       }
@@ -90,7 +96,7 @@ const safeLocalStorage = {
   },
   removeItem: (key: string): boolean => {
     try {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.removeItem(key)
         return true
       }
@@ -98,7 +104,7 @@ const safeLocalStorage = {
     } catch {
       return false
     }
-  }
+  },
 }
 
 // Toast Component
@@ -113,28 +119,28 @@ function Toast({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => 
 
   const getToastStyles = () => {
     switch (toast.type) {
-      case 'success':
-        return 'bg-emerald-600 border-emerald-500 text-emerald-50'
-      case 'error':
-        return 'bg-red-600 border-red-500 text-red-50'
-      case 'warning':
-        return 'bg-amber-600 border-amber-500 text-amber-50'
-      case 'info':
-        return 'bg-blue-600 border-blue-500 text-blue-50'
+      case "success":
+        return "bg-emerald-600 border-emerald-500 text-emerald-50"
+      case "error":
+        return "bg-red-600 border-red-500 text-red-50"
+      case "warning":
+        return "bg-amber-600 border-amber-500 text-amber-50"
+      case "info":
+        return "bg-blue-600 border-blue-500 text-blue-50"
       default:
-        return 'bg-slate-600 border-slate-500 text-slate-50'
+        return "bg-slate-600 border-slate-500 text-slate-50"
     }
   }
 
   const getIcon = () => {
     switch (toast.type) {
-      case 'success':
+      case "success":
         return <CheckCircle size={16} />
-      case 'error':
+      case "error":
         return <XCircle size={16} />
-      case 'warning':
+      case "warning":
         return <AlertTriangle size={16} />
-      case 'info':
+      case "info":
         return <Search size={16} />
       default:
         return null
@@ -143,7 +149,7 @@ function Toast({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => 
 
   return (
     <div
-      className={`flex items-center gap-3 p-3 rounded-lg shadow-lg border ${getToastStyles()} animate-in slide-in-from-right-full duration-300 ease-out`}
+      className={`flex items-center gap-3 p-3 rounded-lg shadow-lg border animate-in slide-in-from-right-full duration-300 ease-out ${getToastStyles()}`}
     >
       {getIcon()}
       <span className="flex-1 text-sm font-medium">{toast.message}</span>
@@ -192,13 +198,13 @@ function LoadingGrid() {
 }
 
 // Quantity Selector Component
-function QuantitySelector({ 
-  value, 
-  onChange, 
-  min = 1, 
+function QuantitySelector({
+  value,
+  onChange,
+  min = 1,
   max = 10,
-  label = "Quantity"
-}: { 
+  label = "Quantity",
+}: {
   value: number
   onChange: (value: number) => void
   min?: number
@@ -216,9 +222,7 @@ function QuantitySelector({
         >
           <Minus size={12} />
         </button>
-        <span className="w-8 text-center text-sm font-bold text-white bg-slate-700 py-1 rounded">
-          {value}
-        </span>
+        <span className="w-8 text-center text-sm font-bold text-white bg-slate-700 py-1 rounded">{value}</span>
         <button
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
@@ -245,9 +249,11 @@ function Card({ card }: { card: CardData }) {
               <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
             </div>
           )}
-          <img
-            src={card.imageUrl}
+          <Image
+            src={card.imageUrl || "/placeholder.svg"}
             alt={card.name}
+            width={200}
+            height={280}
             className="w-full h-auto rounded mb-2 border border-slate-600/20"
             onLoad={() => setImageLoading(false)}
             onError={() => {
@@ -264,12 +270,13 @@ function Card({ card }: { card: CardData }) {
       )}
       <div
         className="text-xs font-semibold text-white mb-1 leading-tight"
-        style={{ fontSize: card?.name?.length > 20 ? '10px' : '12px' }}
+        style={{ fontSize: card?.name?.length > 20 ? "10px" : "12px" }}
       >
-        {card?.name ?? 'Unknown'}
+        {card?.name ?? "Unknown"}
       </div>
       <div className="text-xs text-slate-300 mb-1">
-        {card?.type}{card?.subtype ? ` - ${card.subtype}` : ''}
+        {card?.type}
+        {card?.subtype ? ` - ${card.subtype}` : ""}
       </div>
       {card?.tape_cost !== undefined && (
         <div className="text-xs text-violet-300 mb-1">
@@ -279,7 +286,7 @@ function Card({ card }: { card: CardData }) {
       {(card?.attack !== undefined || card?.health !== undefined) && (
         <div className="text-xs text-amber-300 mb-1">
           {card?.attack !== undefined && <span>ATK: {card.attack}</span>}
-          {card?.attack !== undefined && card?.health !== undefined && ' / '}
+          {card?.attack !== undefined && card?.health !== undefined && " / "}
           {card?.health !== undefined && <span>HP: {card.health}</span>}
         </div>
       )}
@@ -294,7 +301,7 @@ function CardGridItem({
   onHover,
 }: {
   card: CardData
-  onAddToDeck: (card: CardData, deck: 'main' | 'tape' | 'side') => void
+  onAddToDeck: (card: CardData, deck: "main" | "tape" | "side") => void
   onPreview: (card: CardData) => void
   onHover: (cardName: string | null) => void
 }) {
@@ -306,18 +313,18 @@ function CardGridItem({
 
   const handleDragStart = (e: React.DragEvent) => {
     setIsDragging(true)
-    e.dataTransfer.setData('application/json', JSON.stringify(card))
-    e.dataTransfer.effectAllowed = 'copy'
+    e.dataTransfer.setData("application/json", JSON.stringify(card))
+    e.dataTransfer.effectAllowed = "copy"
   }
 
   const handleDragEnd = () => {
     setIsDragging(false)
   }
 
-  const handleAddToDeck = (targetDeck: 'main' | 'tape' | 'side') => {
+  const handleAddToDeck = (targetDeck: "main" | "tape" | "side") => {
     setIsAnimating(true)
     onAddToDeck(card, targetDeck)
-    
+
     // Reset animation after a short delay
     setTimeout(() => {
       setIsAnimating(false)
@@ -327,10 +334,8 @@ function CardGridItem({
   return (
     <div
       className={`bg-white rounded-lg shadow-md relative cursor-grab active:cursor-grabbing transition-all duration-300 ease-out group border border-slate-300 ${
-        isDragging ? 'opacity-50 scale-95 rotate-2' : ''
-      } ${
-        isAnimating ? 'animate-pulse scale-95' : ''
-      }`}
+        isDragging ? "opacity-50 scale-95 rotate-2" : ""
+      } ${isAnimating ? "animate-pulse scale-95" : ""}`}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -341,7 +346,7 @@ function CardGridItem({
         onPreview(card)
       }}
       style={{
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
       {/* Card Image */}
@@ -353,9 +358,11 @@ function CardGridItem({
                 <div className="w-4 h-4 border-2 border-purple-800 border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
-            <img
-              src={card.imageUrl}
+            <Image
+              src={card.imageUrl || "/placeholder.svg"}
               alt={card.name}
+              width={200}
+              height={280}
               className="w-full h-auto rounded-t-lg"
               onLoad={() => setImageLoading(false)}
               onError={() => {
@@ -370,37 +377,37 @@ function CardGridItem({
             No Image
           </div>
         )}
-        
+
         {/* Action buttons overlay - only on the image area */}
-        {card.type !== 'Token' && (
+        {card.type !== "Token" && (
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center rounded-t-lg">
             <div className="flex flex-col gap-1">
-              {card.type !== 'Tape' && (
+              {card.type !== "Tape" && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    setButtonPressed('main')
-                    handleAddToDeck('main')
+                    setButtonPressed("main")
+                    handleAddToDeck("main")
                     setTimeout(() => setButtonPressed(null), 150)
                   }}
                   className={`bg-green-600 hover:bg-green-500 active:bg-green-700 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
-                    buttonPressed === 'main' ? 'scale-95 bg-green-700' : ''
+                    buttonPressed === "main" ? "scale-95 bg-green-700" : ""
                   }`}
                   title="Add to Main Deck (M)"
                 >
                   Main
                 </button>
               )}
-              {card.type === 'Tape' && (
+              {card.type === "Tape" && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    setButtonPressed('tape')
-                    handleAddToDeck('tape')
+                    setButtonPressed("tape")
+                    handleAddToDeck("tape")
                     setTimeout(() => setButtonPressed(null), 150)
                   }}
                   className={`bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
-                    buttonPressed === 'tape' ? 'scale-95 bg-emerald-700' : ''
+                    buttonPressed === "tape" ? "scale-95 bg-emerald-700" : ""
                   }`}
                   title="Add to Tape Deck (T)"
                 >
@@ -410,12 +417,12 @@ function CardGridItem({
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  setButtonPressed('side')
-                  handleAddToDeck('side')
+                  setButtonPressed("side")
+                  handleAddToDeck("side")
                   setTimeout(() => setButtonPressed(null), 150)
                 }}
                 className={`bg-purple-800 hover:bg-purple-700 active:bg-purple-900 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
-                  buttonPressed === 'side' ? 'scale-95 bg-purple-900' : ''
+                  buttonPressed === "side" ? "scale-95 bg-purple-900" : ""
                 }`}
                 title="Add to Side Deck (S)"
               >
@@ -424,7 +431,7 @@ function CardGridItem({
             </div>
           </div>
         )}
-        
+
         {/* Drag indicator */}
         <div className="absolute top-2 right-2 text-white/70 text-xs opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0 bg-black/50 rounded px-1">
           <div className="animate-pulse">⋮⋮</div>
@@ -433,37 +440,35 @@ function CardGridItem({
 
       {/* Card Info - Compact section below image */}
       <div className="p-2 bg-gradient-to-b from-white to-gray-50">
-        <div 
-          className="font-bold text-gray-900 mb-1 leading-tight drop-shadow-sm" 
-          style={{ 
-            fontSize: card?.name?.length > 20 ? '11px' : '13px',
-            textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
-            fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif'
+        <div
+          className="font-bold text-gray-900 mb-1 leading-tight drop-shadow-sm"
+          style={{
+            fontSize: card?.name?.length > 20 ? "11px" : "13px",
+            textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
+            fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif',
           }}
         >
           {card.name}
         </div>
-        <div 
-          className="text-xs text-gray-700 mb-1 font-medium" 
+        <div
+          className="text-xs text-gray-700 mb-1 font-medium"
           style={{ fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif' }}
         >
-          {card.type}{card.subtype ? ` - ${card.subtype}` : ''}
+          {card.type}
+          {card.subtype ? ` - ${card.subtype}` : ""}
         </div>
         {card.tape_cost !== undefined && (
-          <div 
-            className="text-xs text-purple-700 mb-1" 
+          <div
+            className="text-xs text-purple-700 mb-1"
             style={{ fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif' }}
           >
             Tape Cost: <span className="font-bold text-purple-800">{card.tape_cost}</span>
           </div>
         )}
         {(card.attack !== undefined || card.health !== undefined) && (
-          <div 
-            className="text-xs text-red-700" 
-            style={{ fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif' }}
-          >
+          <div className="text-xs text-red-700" style={{ fontFamily: '"Inter", "Segoe UI", system-ui, sans-serif' }}>
             {card.attack !== undefined && <span className="font-bold">ATK: {card.attack}</span>}
-            {card.attack !== undefined && card.health !== undefined && ' / '}
+            {card.attack !== undefined && card.health !== undefined && " / "}
             {card.health !== undefined && <span className="font-bold">HP: {card.health}</span>}
           </div>
         )}
@@ -486,8 +491,8 @@ function DeckList({
   onRemove: (card: CardData) => void
   onPreview: (card: CardData) => void
   validation: { errors: string[]; warnings: string[]; isValid: boolean }
-  deckType: 'main' | 'tape' | 'side'
-  onAddToDeck: (card: CardData, deck: 'main' | 'tape' | 'side') => void
+  deckType: "main" | "tape" | "side"
+  onAddToDeck: (card: CardData, deck: "main" | "tape" | "side") => void
 }) {
   const [hoveredCard, setHoveredCard] = useState<CardData | null>(null)
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
@@ -497,7 +502,7 @@ function DeckList({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
-    e.dataTransfer.dropEffect = 'copy'
+    e.dataTransfer.dropEffect = "copy"
     setIsDragOver(true)
   }
 
@@ -511,23 +516,23 @@ function DeckList({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragOver(false)
-    
+
     try {
-      const cardData = JSON.parse(e.dataTransfer.getData('application/json')) as CardData
+      const cardData = JSON.parse(e.dataTransfer.getData("application/json")) as CardData
       onAddToDeck(cardData, deckType)
-      
+
       // Show animation for newly added card
       setJustAdded(cardData.name)
       setTimeout(() => setJustAdded(null), 600)
     } catch (error) {
-      console.error('Error parsing dropped card data:', error)
+      console.error("Error parsing dropped card data:", error)
     }
   }
 
   const getValidationIcon = () => {
-    const hasErrors = validation.errors.some(error => error.toLowerCase().includes(deckType))
-    const hasWarnings = validation.warnings.some(warning => warning.toLowerCase().includes(deckType))
-    
+    const hasErrors = validation.errors.some((error) => error.toLowerCase().includes(deckType))
+    const hasWarnings = validation.warnings.some((warning) => warning.toLowerCase().includes(deckType))
+
     if (hasErrors) return <XCircle size={16} className="text-red-400 animate-pulse" />
     if (hasWarnings) return <AlertTriangle size={16} className="text-amber-400 animate-bounce" />
     return <CheckCircle size={16} className="text-emerald-400" />
@@ -535,37 +540,39 @@ function DeckList({
 
   const getDeckTypeColor = () => {
     switch (deckType) {
-      case 'main': return isDragOver ? 'bg-green-500 shadow-green-500/50' : 'bg-green-600'
-      case 'tape': return isDragOver ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-emerald-600'
-      case 'side': return isDragOver ? 'bg-purple-700 shadow-purple-500/50' : 'bg-purple-800'
-      default: return 'bg-slate-600'
+      case "main":
+        return isDragOver ? "bg-green-500 shadow-green-500/50" : "bg-green-600"
+      case "tape":
+        return isDragOver ? "bg-emerald-500 shadow-emerald-500/50" : "bg-emerald-600"
+      case "side":
+        return isDragOver ? "bg-purple-700 shadow-purple-500/50" : "bg-purple-800"
+      default:
+        return "bg-slate-600"
     }
   }
 
   return (
     <div className="mb-6 relative">
-      <div 
+      <div
         className={`flex items-center gap-2 mb-3 p-2 rounded-lg text-white transition-all duration-300 ease-out ${getDeckTypeColor()} ${
-          isDragOver ? 'ring-4 ring-white/30 scale-105 shadow-lg' : 'hover:scale-[1.02]'
+          isDragOver ? "ring-4 ring-white/30 scale-105 shadow-lg" : "hover:scale-[1.02]"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <h2 className="font-semibold text-sm transition-all duration-200">{title} ({totalCards})</h2>
-        <div className="transition-all duration-200">
-          {getValidationIcon()}
-        </div>
+        <h2 className="font-semibold text-sm transition-all duration-200">
+          {title} ({totalCards})
+        </h2>
+        <div className="transition-all duration-200">{getValidationIcon()}</div>
         {isDragOver && (
-          <div className="ml-auto text-xs bg-white/20 px-2 py-1 rounded animate-pulse backdrop-blur-sm">
-            Drop here!
-          </div>
+          <div className="ml-auto text-xs bg-white/20 px-2 py-1 rounded animate-pulse backdrop-blur-sm">Drop here!</div>
         )}
       </div>
-      
-      <div 
+
+      <div
         className={`space-y-1 transition-all duration-300 ${
-          isDragOver ? 'bg-slate-700/30 rounded-lg p-2 border-2 border-dashed border-slate-400 scale-[1.02]' : ''
+          isDragOver ? "bg-slate-700/30 rounded-lg p-2 border-2 border-dashed border-slate-400 scale-[1.02]" : ""
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -575,11 +582,11 @@ function DeckList({
           <div
             key={name}
             className={`flex items-center bg-slate-800 hover:bg-slate-700 transition-all duration-300 border border-slate-600/30 rounded cursor-pointer group hover:scale-[1.02] hover:shadow-md ${
-              justAdded === name ? 'animate-pulse bg-green-900/50 border-green-400' : ''
+              justAdded === name ? "animate-pulse bg-green-900/50 border-green-400" : ""
             }`}
             style={{
               animationDelay: `${index * 50}ms`,
-              animation: justAdded === name ? 'slideInFromRight 0.5s ease-out' : '',
+              animation: justAdded === name ? "slideInFromRight 0.5s ease-out" : "",
             }}
             onMouseEnter={(e) => {
               const rect = e.currentTarget.getBoundingClientRect()
@@ -594,30 +601,32 @@ function DeckList({
             }}
           >
             {/* Quantity indicator */}
-            <div className="flex-shrink-0 w-6 h-8 bg-slate-700 flex items-center justify-center text-xs font-bold text-white rounded-l border-r border-slate-600 transition-all duration-200 group-hover:bg-slate-600">
+            <div className="shrink-0 w-6 h-8 bg-slate-700 flex items-center justify-center text-xs font-bold text-white rounded-l border-r border-slate-600 transition-all duration-200 group-hover:bg-slate-600">
               {count}
             </div>
-            
+
             {/* Card thumbnail */}
-            <div className="flex-shrink-0 w-8 h-8 overflow-hidden transition-all duration-200 group-hover:scale-110">
+            <div className="shrink-0 w-8 h-8 overflow-hidden transition-all duration-200 group-hover:scale-110">
               {card.imageUrl ? (
-                <img
-                  src={card.imageUrl}
+                <Image
+                  src={card.imageUrl || "/placeholder.svg"}
                   alt={card.name}
-                  className="w-full h-full object-cover transition-all duration-300 group-hover:brightness-110"
+                  width={32}
+                  height={32}
+                  className="size-full object-cover transition-all duration-300 group-hover:brightness-110"
                   onError={(e) => {
-                    e.currentTarget.style.display = 'none'
+                    e.currentTarget.style.display = "none"
                   }}
                 />
               ) : (
-                <div className="w-full h-full bg-slate-700 flex items-center justify-center transition-colors duration-200 group-hover:bg-slate-600">
+                <div className="size-full bg-slate-700 flex items-center justify-center transition-colors duration-200 group-hover:bg-slate-600">
                   <span className="text-xs text-slate-400">?</span>
                 </div>
               )}
             </div>
 
             {/* Card name */}
-            <div className="flex-grow min-w-0 px-2 py-1">
+            <div className="grow min-w-0 px-2 py-1">
               <div className="text-xs font-medium text-white truncate transition-all duration-200 group-hover:text-slate-200">
                 {name}
               </div>
@@ -625,7 +634,7 @@ function DeckList({
 
             {/* Tape cost */}
             {card.tape_cost !== undefined && (
-              <div className="flex-shrink-0 w-6 h-8 bg-purple-800 flex items-center justify-center text-xs font-bold text-white rounded-r border-l border-slate-600 transition-all duration-200 group-hover:bg-purple-700">
+              <div className="shrink-0 w-6 h-8 bg-purple-800 flex items-center justify-center text-xs font-bold text-white rounded-r border-l border-slate-600 transition-all duration-200 group-hover:bg-purple-700">
                 {card.tape_cost}
               </div>
             )}
@@ -634,9 +643,9 @@ function DeckList({
       </div>
 
       {cards.length === 0 && (
-        <div 
+        <div
           className={`text-slate-400 text-xs italic p-4 text-center bg-slate-800/30 rounded border border-slate-600/20 transition-all duration-300 ${
-            isDragOver ? 'border-slate-400 bg-slate-700/30 scale-105 text-slate-300' : 'hover:bg-slate-800/50'
+            isDragOver ? "border-slate-400 bg-slate-700/30 scale-105 text-slate-300" : "hover:bg-slate-800/50"
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -644,9 +653,9 @@ function DeckList({
         >
           {isDragOver ? (
             <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+              <div className="size-2 bg-slate-400 rounded-full animate-bounce"></div>
               <span>Drop cards here for {title.toLowerCase()}</span>
-              <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="size-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
             </div>
           ) : (
             `No cards in ${title.toLowerCase()}`
@@ -661,19 +670,21 @@ function DeckList({
           style={{
             top: hoverPos.y + 10,
             left: hoverPos.x + 10,
-            backgroundColor: 'black',
-            padding: '4px',
-            border: '2px solid #8b5cf6',
-            borderRadius: '8px',
-            boxShadow: '0 10px 25px rgba(139, 92, 246, 0.3)',
+            backgroundColor: "black",
+            padding: "4px",
+            border: "2px solid #8b5cf6",
+            borderRadius: "8px",
+            boxShadow: "0 10px 25px rgba(139, 92, 246, 0.3)",
           }}
         >
-          <img
-            src={hoveredCard.imageUrl}
+          <Image
+            src={hoveredCard.imageUrl || "/placeholder.svg"}
             alt={hoveredCard.name}
+            width={192}
+            height={268}
             className="w-48 h-auto rounded transition-all duration-200 hover:scale-105"
             onError={(e) => {
-              e.currentTarget.style.display = 'none'
+              e.currentTarget.style.display = "none"
             }}
           />
         </div>
@@ -705,9 +716,7 @@ function FilterPanel({
             type="text"
             className="w-full pl-8 p-2 rounded bg-slate-800 text-white border border-slate-600/50 focus:border-purple-800/50 focus:ring-1 focus:ring-purple-800/20 transition-all duration-200 text-sm"
             value={filters.searchText}
-            onChange={(e) =>
-              setFilters((f: Filters) => ({ ...f, searchText: e.target.value }))
-            }
+            onChange={(e) => setFilters((f: Filters) => ({ ...f, searchText: e.target.value }))}
             placeholder="Search name, effect, flavor..."
           />
         </div>
@@ -719,9 +728,7 @@ function FilterPanel({
           type="text"
           className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600/50 focus:border-purple-800/50 focus:ring-1 focus:ring-purple-800/20 transition-all duration-200 text-sm"
           value={filters.name}
-          onChange={(e) =>
-            setFilters((f: Filters) => ({ ...f, name: e.target.value }))
-          }
+          onChange={(e) => setFilters((f: Filters) => ({ ...f, name: e.target.value }))}
           placeholder="Exact name filter"
         />
       </div>
@@ -731,9 +738,7 @@ function FilterPanel({
         <select
           className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600/50 focus:border-violet-400/50 focus:ring-1 focus:ring-violet-400/20 transition-all duration-200 text-sm"
           value={filters.type}
-          onChange={(e) =>
-            setFilters((f: Filters) => ({ ...f, type: e.target.value }))
-          }
+          onChange={(e) => setFilters((f: Filters) => ({ ...f, type: e.target.value }))}
         >
           <option value="">All Types</option>
           <option value="Character">Character</option>
@@ -758,9 +763,7 @@ function FilterPanel({
           type="text"
           className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600/50 focus:border-violet-400/50 focus:ring-1 focus:ring-violet-400/20 transition-all duration-200 text-sm"
           value={filters.subtype}
-          onChange={(e) =>
-            setFilters((f: Filters) => ({ ...f, subtype: e.target.value }))
-          }
+          onChange={(e) => setFilters((f: Filters) => ({ ...f, subtype: e.target.value }))}
           placeholder="Filter by subtype"
         />
       </div>
@@ -770,13 +773,13 @@ function FilterPanel({
         <select
           className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600/50 focus:border-violet-400/50 focus:ring-1 focus:ring-violet-400/20 transition-all duration-200 text-sm"
           value={filters.expansion}
-          onChange={(e) =>
-            setFilters((f: Filters) => ({ ...f, expansion: e.target.value }))
-          }
+          onChange={(e) => setFilters((f: Filters) => ({ ...f, expansion: e.target.value }))}
         >
           <option value="">All Expansions</option>
-          {expansions.map(expansion => (
-            <option key={expansion} value={expansion}>{expansion}</option>
+          {expansions.map((expansion) => (
+            <option key={expansion} value={expansion}>
+              {expansion}
+            </option>
           ))}
         </select>
       </div>
@@ -787,9 +790,7 @@ function FilterPanel({
           type="number"
           className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600/50 focus:border-violet-400/50 focus:ring-1 focus:ring-violet-400/20 transition-all duration-200 text-sm"
           value={filters.tape_cost}
-          onChange={(e) =>
-            setFilters((f: Filters) => ({ ...f, tape_cost: e.target.value }))
-          }
+          onChange={(e) => setFilters((f: Filters) => ({ ...f, tape_cost: e.target.value }))}
           placeholder="Filter by cost"
         />
       </div>
@@ -800,9 +801,7 @@ function FilterPanel({
           type="text"
           className="w-full p-2 rounded bg-slate-800 text-white border border-slate-600/50 focus:border-violet-400/50 focus:ring-1 focus:ring-violet-400/20 transition-all duration-200 text-sm"
           value={filters.artist}
-          onChange={(e) =>
-            setFilters((f: Filters) => ({ ...f, artist: e.target.value }))
-          }
+          onChange={(e) => setFilters((f: Filters) => ({ ...f, artist: e.target.value }))}
           placeholder="Filter by artist"
         />
       </div>
@@ -811,10 +810,13 @@ function FilterPanel({
         <label className="block text-xs font-medium mb-2 text-slate-200">Keywords</label>
         <div className="grid grid-cols-2 gap-1">
           {ALL_KEYWORDS.map((kw) => (
-            <label key={kw} className="flex items-center gap-1 p-1 rounded bg-slate-800/50 border border-slate-600/30 hover:bg-slate-700/50 transition-all duration-200 cursor-pointer">
+            <label
+              key={kw}
+              className="flex items-center gap-1 p-1 rounded bg-slate-800/50 border border-slate-600/30 hover:bg-slate-700/50 transition-all duration-200 cursor-pointer"
+            >
               <input
                 type="checkbox"
-                className="w-3 h-3 rounded text-violet-600 focus:ring-violet-500 focus:ring-1 bg-slate-700 border-slate-500"
+                className="size-3 rounded text-violet-600 focus:ring-violet-500 focus:ring-1 bg-slate-700 border-slate-500"
                 checked={filters.keywords.includes(kw)}
                 onChange={() => toggleKeyword(kw)}
               />
@@ -829,14 +831,14 @@ function FilterPanel({
           className="w-full bg-red-600 hover:bg-red-500 text-white font-medium py-2 px-3 rounded shadow transition-all duration-200 text-sm"
           onClick={() =>
             setFilters({
-              name: '',
-              type: '',
-              subtype: '',
-              expansion: '',
-              tape_cost: '',
-              artist: '',
+              name: "",
+              type: "",
+              subtype: "",
+              expansion: "",
+              tape_cost: "",
+              artist: "",
               keywords: [],
-              searchText: '',
+              searchText: "",
             })
           }
         >
@@ -845,16 +847,23 @@ function FilterPanel({
       </div>
 
       <div className="p-3 bg-purple-900/30 rounded border border-purple-500/20 text-xs text-slate-300">
-        <strong className="text-purple-300">Controls:</strong><br/>
+        <strong className="text-purple-300">Controls:</strong>
+        <br />
         <div className="mt-1 space-y-0.5">
-          <div><span className="text-amber-300">M</span> - Add to Main</div>
-          <div><span className="text-emerald-300">T</span> - Add to Tape</div>
-          <div><span className="text-yellow-300">S</span> - Add to Side</div>
-          <div><span className="text-cyan-300">Drag & Drop</span> - Drag cards to deck sections</div>
+          <div>
+            <span className="text-amber-300">M</span> - Add to Main
+          </div>
+          <div>
+            <span className="text-emerald-300">T</span> - Add to Tape
+          </div>
+          <div>
+            <span className="text-yellow-300">S</span> - Add to Side
+          </div>
+          <div>
+            <span className="text-cyan-300">Drag & Drop</span> - Drag cards to deck sections
+          </div>
         </div>
-        <div className="mt-1 text-purple-400 italic">
-          (Hover over card first for shortcuts)
-        </div>
+        <div className="mt-1 text-purple-400 italic">(Hover over card first for shortcuts)</div>
       </div>
     </>
   )
@@ -866,157 +875,166 @@ export default function DeckbuilderPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<Filters>({
-    name: '',
-    type: '',
-    subtype: '',
-    expansion: '',
-    tape_cost: '',
-    artist: '',
+    name: "",
+    type: "",
+    subtype: "",
+    expansion: "",
+    tape_cost: "",
+    artist: "",
     keywords: [],
-    searchText: '',
+    searchText: "",
   })
   const [toasts, setToasts] = useState<Toast[]>([])
   const [mainDeck, setMainDeck] = useState<CardData[]>([])
   const [tapeDeck, setTapeDeck] = useState<CardData[]>([])
   const [sideDeck, setSideDeck] = useState<CardData[]>([])
-  const [deckName, setDeckName] = useState('')
-  const [deckDescription, setDeckDescription] = useState('')
+  const [deckName, setDeckName] = useState("")
+  const [deckDescription, setDeckDescription] = useState("")
   const [savedDecks, setSavedDecks] = useState<string[]>([])
-  const [selectedDeckToLoad, setSelectedDeckToLoad] = useState('')
+  const [selectedDeckToLoad, setSelectedDeckToLoad] = useState("")
   const [previewCard, setPreviewCard] = useState<CardData | null>(null)
   const [previewQuantity, setPreviewQuantity] = useState(1)
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [showStatsModal, setShowStatsModal] = useState(false)
-  const [deckSort, setDeckSort] = useState<SortOption>('name')
+  const [deckSort, setDeckSort] = useState<SortOption>("name")
   const [showPlaytest, setShowPlaytest] = useState(false)
   const [hand, setHand] = useState<CardData[]>([])
   const [showHandModal, setShowHandModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
-  const [importText, setImportText] = useState('')
+  const [importText, setImportText] = useState("")
   const [showMulliganModal, setShowMulliganModal] = useState(false)
   const [selectedMulliganCards, setSelectedMulliganCards] = useState<number[]>([])
   const [deckForDrawing, setDeckForDrawing] = useState<CardData[]>([])
   const [hasUsedMulligan, setHasUsedMulligan] = useState(false)
 
   // Toast utility functions
-  const addToast = useCallback((message: string, type: Toast['type'] = 'info', duration?: number) => {
+  const addToast = useCallback((message: string, type: Toast["type"] = "info", duration?: number) => {
     const id = Math.random().toString(36).substr(2, 9)
     const newToast: Toast = { id, message, type, duration }
     setToasts([newToast])
   }, [])
 
   const dismissToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id))
+    setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }, [])
 
   // Card manipulation functions
-  const canAddCardToDeck = useCallback((card: CardData, targetDeck: 'main' | 'tape' | 'side'): string | null => {
-    const allCopies = [...mainDeck, ...sideDeck, ...tapeDeck].filter(c => c.name === card.name)
-    const nameCount = allCopies.length
-    const isBasicTape = card.name?.toLowerCase().includes('basic tape')
-    const isToyTank = card.name?.toLowerCase() === 'toy tank'
+  const canAddCardToDeck = useCallback(
+    (card: CardData, targetDeck: "main" | "tape" | "side"): string | null => {
+      const allCopies = [...mainDeck, ...sideDeck, ...tapeDeck].filter((c) => c.name === card.name)
+      const nameCount = allCopies.length
+      const isBasicTape = card.name?.toLowerCase().includes("basic tape")
+      const isToyTank = card.name?.toLowerCase() === "toy tank"
 
-    if (card.name?.toLowerCase().includes('cipher tape')) {
-      return 'Cipher Tapes cannot be added to any deck.'
-    }
-
-    if (card.type === 'Token') return 'Tokens cannot be added to any deck.'
-
-    if (targetDeck === 'main') {
-      if (card.type === 'Tape') return 'Tapes cannot go in the main deck.'
-      if (mainDeck.length >= 120) return 'Main deck is full.'
-      if (!isBasicTape && !isToyTank && nameCount >= 3) return 'You can only have 3 total copies of a card between main and side decks.'
-
-      const hasScribe = mainDeck.some(c => c.type === 'Scribe')
-      const hasLolcow = mainDeck.some(c => c.type === 'LolCow')
-      const incoming = card.type
-
-      if ((hasScribe && incoming === 'LolCow') || (hasLolcow && incoming === 'Scribe')) {
-        return 'Scribes and Lolcows cannot be in the same main deck.'
+      if (card.name?.toLowerCase().includes("cipher tape")) {
+        return "Cipher Tapes cannot be added to any deck."
       }
 
-      return null
-    }
+      if (card.type === "Token") return "Tokens cannot be added to any deck."
 
-    if (targetDeck === 'tape') {
-      if (card.type !== 'Tape') return 'Only Tapes can go in the tape deck.'
-      if (tapeDeck.length >= 10) return 'Tape deck must be exactly 10 cards.'
-      if (!isBasicTape && card.rarity === 'Special') {
-        const specialTapeCount = [...tapeDeck, ...sideDeck].filter(c => c.name === card.name).length
-        if (specialTapeCount >= 1) return 'Only 1 copy of a Special Tape allowed between tape and side decks.'
-      }
-      if (!isBasicTape && nameCount >= 3) return 'Max 3 copies total of a tape between decks.'
-      return null
-    }
+      if (targetDeck === "main") {
+        if (card.type === "Tape") return "Tapes cannot go in the main deck."
+        if (mainDeck.length >= 120) return "Main deck is full."
+        if (!isBasicTape && !isToyTank && nameCount >= 3)
+          return "You can only have 3 total copies of a card between main and side decks."
 
-    if (targetDeck === 'side') {
-      if (sideDeck.length >= 10) return 'Side deck cannot exceed 10 cards.'
-      if (card.type === 'Tape') {
-        if (!isBasicTape && card.rarity === 'Special') {
-          const specialTapeCount = [...tapeDeck, ...sideDeck].filter(c => c.name === card.name).length
-          if (specialTapeCount >= 1) return 'Only 1 copy of a Special Tape allowed between tape and side decks.'
+        const hasScribe = mainDeck.some((c) => c.type === "Scribe")
+        const hasLolcow = mainDeck.some((c) => c.type === "LolCow")
+        const incoming = card.type
+
+        if ((hasScribe && incoming === "LolCow") || (hasLolcow && incoming === "Scribe")) {
+          return "Scribes and Lolcows cannot be in the same main deck."
         }
-        if (!isBasicTape && nameCount >= 3) return 'Max 3 copies total of a tape between decks.'
+
         return null
       }
-      if (!isBasicTape && !isToyTank && nameCount >= 3) return 'Only 3 total copies allowed between main and side decks.'
-      return null
-    }
 
-    return null
-  }, [mainDeck, tapeDeck, sideDeck])
-
-  const addCardToDeck = useCallback((card: CardData, targetDeck: 'main' | 'tape' | 'side', count: number = 1) => {
-    let addedCount = 0
-    
-    for (let i = 0; i < count; i++) {
-      const error = canAddCardToDeck(card, targetDeck)
-      if (error) {
-        if (addedCount === 0) {
-          addToast(error, 'error')
-        } else {
-          addToast(`Added ${addedCount} of ${count} copies. ${error}`, 'warning')
+      if (targetDeck === "tape") {
+        if (card.type !== "Tape") return "Only Tapes can go in the tape deck."
+        if (tapeDeck.length >= 10) return "Tape deck must be exactly 10 cards."
+        if (!isBasicTape && card.rarity === "Special") {
+          const specialTapeCount = [...tapeDeck, ...sideDeck].filter((c) => c.name === card.name).length
+          if (specialTapeCount >= 1) return "Only 1 copy of a Special Tape allowed between tape and side decks."
         }
-        break
+        if (!isBasicTape && nameCount >= 3) return "Max 3 copies total of a tape between decks."
+        return null
       }
 
-      if (targetDeck === 'main') setMainDeck(prev => [...prev, card])
-      if (targetDeck === 'tape') setTapeDeck(prev => [...prev, card])
-      if (targetDeck === 'side') setSideDeck(prev => [...prev, card])
-      
-      addedCount++
-    }
+      if (targetDeck === "side") {
+        if (sideDeck.length >= 10) return "Side deck cannot exceed 10 cards."
+        if (card.type === "Tape") {
+          if (!isBasicTape && card.rarity === "Special") {
+            const specialTapeCount = [...tapeDeck, ...sideDeck].filter((c) => c.name === card.name).length
+            if (specialTapeCount >= 1) return "Only 1 copy of a Special Tape allowed between tape and side decks."
+          }
+          if (!isBasicTape && nameCount >= 3) return "Max 3 copies total of a tape between decks."
+          return null
+        }
+        if (!isBasicTape && !isToyTank && nameCount >= 3)
+          return "Only 3 total copies allowed between main and side decks."
+        return null
+      }
 
-    if (addedCount > 0) {
-      const deckDisplayName = targetDeck === 'main' ? 'main deck' : targetDeck === 'tape' ? 'tape deck' : 'side deck'
-      const message = addedCount === 1 
-        ? `Added ${card.name} to ${deckDisplayName}`
-        : `Added ${addedCount}x ${card.name} to ${deckDisplayName}`
-      addToast(message, 'success')
-    }
-  }, [canAddCardToDeck, addToast])
+      return null
+    },
+    [mainDeck, tapeDeck, sideDeck],
+  )
 
-  const removeCard = useCallback((card: CardData, deck: 'main' | 'tape' | 'side') => {
+  const addCardToDeck = useCallback(
+    (card: CardData, targetDeck: "main" | "tape" | "side", count = 1) => {
+      let addedCount = 0
+
+      for (let i = 0; i < count; i++) {
+        const error = canAddCardToDeck(card, targetDeck)
+        if (error) {
+          if (addedCount === 0) {
+            addToast(error, "error")
+          } else {
+            addToast(`Added ${addedCount} of ${count} copies. ${error}`, "warning")
+          }
+          break
+        }
+
+        if (targetDeck === "main") setMainDeck((prev) => [...prev, card])
+        if (targetDeck === "tape") setTapeDeck((prev) => [...prev, card])
+        if (targetDeck === "side") setSideDeck((prev) => [...prev, card])
+
+        addedCount++
+      }
+
+      if (addedCount > 0) {
+        const deckDisplayName = targetDeck === "main" ? "main deck" : targetDeck === "tape" ? "tape deck" : "side deck"
+        const message =
+          addedCount === 1
+            ? `Added ${card.name} to ${deckDisplayName}`
+            : `Added ${addedCount}x ${card.name} to ${deckDisplayName}`
+        addToast(message, "success")
+      }
+    },
+    [canAddCardToDeck, addToast],
+  )
+
+  const removeCard = useCallback((card: CardData, deck: "main" | "tape" | "side") => {
     const update = (arr: CardData[]) => {
-      const index = arr.findIndex(c => c.name === card.name)
+      const index = arr.findIndex((c) => c.name === card.name)
       if (index !== -1) {
         return arr.filter((_, i) => i !== index)
       }
       return arr
     }
 
-    if (deck === 'main') setMainDeck(update)
-    if (deck === 'tape') setTapeDeck(update)
-    if (deck === 'side') setSideDeck(update)
+    if (deck === "main") setMainDeck(update)
+    if (deck === "tape") setTapeDeck(update)
+    if (deck === "side") setSideDeck(update)
   }, [])
 
   const toggleKeyword = useCallback((keyword: string) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       keywords: prev.keywords.includes(keyword)
-        ? prev.keywords.filter(kw => kw !== keyword)
-        : [...prev.keywords, keyword]
+        ? prev.keywords.filter((kw) => kw !== keyword)
+        : [...prev.keywords, keyword],
     }))
   }, [])
 
@@ -1025,21 +1043,21 @@ export default function DeckbuilderPage() {
     const loadCards = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/cards.json')
+        const response = await fetch("/cards.json")
         if (!response.ok) {
-          throw new Error('Failed to load cards')
+          throw new Error("Failed to load cards")
         }
         const cardsData = await response.json()
         setCards(cardsData)
-        
+
         // Load saved decks from localStorage
-        const decksData = safeLocalStorage.getItem('lolcow_decks')
+        const decksData = safeLocalStorage.getItem("lolcow_decks")
         const decks = decksData ? JSON.parse(decksData) : {}
         setSavedDecks(Object.keys(decks))
-        
+
         setError(null)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load cards')
+        setError(err instanceof Error ? err.message : "Failed to load cards")
       } finally {
         setLoading(false)
       }
@@ -1056,18 +1074,18 @@ export default function DeckbuilderPage() {
   // Get unique expansions for filter dropdown
   const expansions = useMemo(() => {
     const expansionMap = new Map<string, string>()
-    
-    cards.forEach(card => {
+
+    cards.forEach((card) => {
       if (card.expansion) {
-        const cleaned = card.expansion.trim().replace(/\s+/g, ' ')
+        const cleaned = card.expansion.trim().replace(/\s+/g, " ")
         const normalized = cleaned.toLowerCase()
-        
+
         if (!expansionMap.has(normalized)) {
           expansionMap.set(normalized, cleaned)
         }
       }
     })
-    
+
     return Array.from(expansionMap.values()).sort()
   }, [cards])
 
@@ -1075,52 +1093,71 @@ export default function DeckbuilderPage() {
   const fuzzySearch = useCallback((query: string, text: string): boolean => {
     if (!query) return true
     if (!text) return false
-    const searchTerms = query.toLowerCase().split(' ')
+    const searchTerms = query.toLowerCase().split(" ")
     const searchText = text.toLowerCase()
-    return searchTerms.every(term => searchText.includes(term))
+    return searchTerms.every((term) => searchText.includes(term))
   }, [])
 
   // Enhanced search with fuzzy matching and card text search
   const filteredCards = useMemo(() => {
     return cards.filter((card) => {
       const matchesName = fuzzySearch(filters.name, card.name)
-      const matchesSearchText = filters.searchText ? 
-        fuzzySearch(filters.searchText, `${card.name} ${card.effect || ''} ${card.flavor_text || ''} ${card.subtype || ''}`) : true
-      
-      const characterTypes = ['lolcow', 'scribe', 'trole', 'companion', 'universal']
-      const cardType = card.type?.toLowerCase() || ''
-      
-      const matchesType = filters.type
-        ? filters.type.toLowerCase() === 'character'
-          ? characterTypes.includes(cardType) || 
-            cardType.includes('lolcow') || 
-            cardType.includes('scribe') || 
-            cardType.includes('trole') || 
-            cardType.includes('troll')
-          : filters.type.toLowerCase() === 'lolcow'
-          ? cardType === 'lolcow' || cardType.includes('lolcow')
-          : filters.type.toLowerCase() === 'scribe'
-          ? cardType === 'scribe' || cardType.includes('scribe')
-          : filters.type.toLowerCase() === 'trole'
-          ? cardType === 'trole' || cardType.includes('trole') || cardType.includes('troll')
-          : cardType === filters.type.toLowerCase()
+      const matchesSearchText = filters.searchText
+        ? fuzzySearch(
+            filters.searchText,
+            `${card.name} ${card.effect || ""} ${card.flavor_text || ""} ${card.subtype || ""}`,
+          )
         : true
 
-      const matchesSubtype = filters.subtype ? card.subtype?.toLowerCase().includes(filters.subtype.toLowerCase()) : true
-      const matchesExpansion = filters.expansion ? 
-        card.expansion?.trim().replace(/\s+/g, ' ').toLowerCase() === 
-        filters.expansion.trim().replace(/\s+/g, ' ').toLowerCase() : true
-      const matchesTapeCost = filters.tape_cost !== '' ? card.tape_cost === Number(filters.tape_cost) : true
-      const matchesArtist = filters.artist ? card.artist?.toLowerCase().includes(filters.artist.toLowerCase()) : true
-      
-      const matchesKeywords = filters.keywords.length > 0 ? (() => {
-        const cardKeywords = Array.isArray(card.keywords) ? card.keywords : (card.keywords ? [card.keywords] : [])
-        return filters.keywords.every((kw) => 
-          cardKeywords.some((k) => k.toLowerCase().includes(kw.toLowerCase()))
-        )
-      })() : true
+      const characterTypes = ["lolcow", "scribe", "trole", "companion", "universal"]
+      const cardType = card.type?.toLowerCase() || ""
 
-      return matchesName && matchesSearchText && matchesType && matchesSubtype && matchesExpansion && matchesTapeCost && matchesArtist && matchesKeywords
+      const matchesType = filters.type
+        ? filters.type.toLowerCase() === "character"
+          ? characterTypes.includes(cardType) ||
+            cardType.includes("lolcow") ||
+            cardType.includes("scribe") ||
+            cardType.includes("trole") ||
+            cardType.includes("troll")
+          : filters.type.toLowerCase() === "lolcow"
+            ? cardType === "lolcow" || cardType.includes("lolcow")
+            : filters.type.toLowerCase() === "scribe"
+              ? cardType === "scribe" || cardType.includes("scribe")
+              : filters.type.toLowerCase() === "trole"
+                ? cardType === "trole" || cardType.includes("trole") || cardType.includes("troll")
+                : cardType === filters.type.toLowerCase()
+        : true
+
+      const matchesSubtype = filters.subtype
+        ? card.subtype?.toLowerCase().includes(filters.subtype.toLowerCase())
+        : true
+      const matchesExpansion = filters.expansion
+        ? card.expansion?.trim().replace(/\s+/g, " ").toLowerCase() ===
+          filters.expansion.trim().replace(/\s+/g, " ").toLowerCase()
+        : true
+      const matchesTapeCost = filters.tape_cost !== "" ? card.tape_cost === Number(filters.tape_cost) : true
+      const matchesArtist = filters.artist ? card.artist?.toLowerCase().includes(filters.artist.toLowerCase()) : true
+
+      const matchesKeywords =
+        filters.keywords.length > 0
+          ? (() => {
+              const cardKeywords = Array.isArray(card.keywords) ? card.keywords : card.keywords ? [card.keywords] : []
+              return filters.keywords.every((kw) =>
+                cardKeywords.some((k) => k.toLowerCase().includes(kw.toLowerCase())),
+              )
+            })()
+          : true
+
+      return (
+        matchesName &&
+        matchesSearchText &&
+        matchesType &&
+        matchesSubtype &&
+        matchesExpansion &&
+        matchesTapeCost &&
+        matchesArtist &&
+        matchesKeywords
+      )
     })
   }, [cards, filters, fuzzySearch])
 
@@ -1129,21 +1166,25 @@ export default function DeckbuilderPage() {
     const errors: string[] = []
     const warnings: string[] = []
 
-    if (mainDeck.length < 40) errors.push(`Main deck has ${mainDeck.length} cards (minimum 40 required for tournament play)`)
+    if (mainDeck.length < 40)
+      errors.push(`Main deck has ${mainDeck.length} cards (minimum 40 required for tournament play)`)
     if (mainDeck.length > 120) errors.push(`Main deck has ${mainDeck.length} cards (maximum 120)`)
-    
+
     if (tapeDeck.length !== 10) {
-      if (tapeDeck.length < 10) errors.push(`Tape deck has ${tapeDeck.length} cards (exactly 10 required for tournament play)`)
-      if (tapeDeck.length > 10) errors.push(`Tape deck has ${tapeDeck.length} cards (exactly 10 required for tournament play)`)
+      if (tapeDeck.length < 10)
+        errors.push(`Tape deck has ${tapeDeck.length} cards (exactly 10 required for tournament play)`)
+      if (tapeDeck.length > 10)
+        errors.push(`Tape deck has ${tapeDeck.length} cards (exactly 10 required for tournament play)`)
     }
 
-    const hasScribe = mainDeck.some(c => c.type === 'Scribe')
-    const hasLolcow = mainDeck.some(c => c.type === 'LolCow')
+    const hasScribe = mainDeck.some((c) => c.type === "Scribe")
+    const hasLolcow = mainDeck.some((c) => c.type === "LolCow")
     if (hasScribe && hasLolcow) {
-      errors.push('Scribes and Lolcows cannot be in the same main deck')
+      errors.push("Scribes and Lolcows cannot be in the same main deck")
     }
 
-    const isTournamentLegal = mainDeck.length >= 40 && mainDeck.length <= 120 && tapeDeck.length === 10 && errors.length === 0
+    const isTournamentLegal =
+      mainDeck.length >= 40 && mainDeck.length <= 120 && tapeDeck.length === 10 && errors.length === 0
 
     return { errors, warnings, isValid: errors.length === 0, isTournamentLegal }
   }, [mainDeck, tapeDeck])
@@ -1151,27 +1192,32 @@ export default function DeckbuilderPage() {
   // Deck statistics
   const deckStats = useMemo(() => {
     const allCards = [...mainDeck, ...sideDeck]
-    const tapeCostDistribution = allCards.reduce((acc, card) => {
-      const cost = card.tape_cost || 0
-      acc[cost] = (acc[cost] || 0) + 1
-      return acc
-    }, {} as Record<number, number>)
+    const tapeCostDistribution = allCards.reduce(
+      (acc, card) => {
+        const cost = card.tape_cost || 0
+        acc[cost] = (acc[cost] || 0) + 1
+        return acc
+      },
+      {} as Record<number, number>,
+    )
 
-    const typeBreakdown = allCards.reduce((acc, card) => {
-      const type = card.type || 'Unknown'
-      acc[type] = (acc[type] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
+    const typeBreakdown = allCards.reduce(
+      (acc, card) => {
+        const type = card.type || "Unknown"
+        acc[type] = (acc[type] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>,
+    )
 
-    const averageTapeCost = allCards.length > 0 
-      ? allCards.reduce((sum, card) => sum + (card.tape_cost || 0), 0) / allCards.length 
-      : 0
+    const averageTapeCost =
+      allCards.length > 0 ? allCards.reduce((sum, card) => sum + (card.tape_cost || 0), 0) / allCards.length : 0
 
     return {
       tapeCostDistribution,
       typeBreakdown,
       averageTapeCost: Math.round(averageTapeCost * 100) / 100,
-      totalCards: allCards.length
+      totalCards: allCards.length,
     }
   }, [mainDeck, sideDeck])
 
@@ -1179,36 +1225,36 @@ export default function DeckbuilderPage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) return
-      
+
       if (hoveredCard) {
-        const card = cards.find(c => c.name === hoveredCard)
+        const card = cards.find((c) => c.name === hoveredCard)
         if (!card) return
 
         switch (e.key.toLowerCase()) {
-          case 'm':
+          case "m":
             e.preventDefault()
-            addCardToDeck(card, 'main')
+            addCardToDeck(card, "main")
             break
-          case 't':
+          case "t":
             e.preventDefault()
-            addCardToDeck(card, 'tape')
+            addCardToDeck(card, "tape")
             break
-          case 's':
+          case "s":
             e.preventDefault()
-            addCardToDeck(card, 'side')
+            addCardToDeck(card, "side")
             break
         }
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
   }, [hoveredCard, cards, addCardToDeck])
 
   // Deck management functions
   const saveDeck = useCallback(() => {
     if (!deckName.trim()) {
-      addToast('Please enter a deck name.', 'error')
+      addToast("Please enter a deck name.", "error")
       return
     }
 
@@ -1219,72 +1265,75 @@ export default function DeckbuilderPage() {
       name: deckName,
       description: deckDescription,
       dateCreated: new Date().toISOString(),
-      dateModified: new Date().toISOString()
+      dateModified: new Date().toISOString(),
     }
 
-    const existing = safeLocalStorage.getItem('lolcow_decks')
+    const existing = safeLocalStorage.getItem("lolcow_decks")
     const decks = existing ? JSON.parse(existing) : {}
-    
+
     if (decks[deckName]) {
       deck.dateCreated = decks[deckName].dateCreated
     }
-    
+
     decks[deckName] = deck
-    
-    if (safeLocalStorage.setItem('lolcow_decks', JSON.stringify(decks))) {
+
+    if (safeLocalStorage.setItem("lolcow_decks", JSON.stringify(decks))) {
       setSavedDecks(Object.keys(decks))
-      addToast(`Deck "${deckName}" saved successfully!`, 'success')
+      addToast(`Deck "${deckName}" saved successfully!`, "success")
     } else {
-      addToast('Failed to save deck - localStorage not available', 'error')
+      addToast("Failed to save deck - localStorage not available", "error")
     }
   }, [deckName, deckDescription, mainDeck, tapeDeck, sideDeck, addToast])
 
-  const loadDeck = useCallback((deckNameToLoad: string) => {
-    const existing = safeLocalStorage.getItem('lolcow_decks')
-    const decks = existing ? JSON.parse(existing) : {}
-    const deck = decks[deckNameToLoad]
-    
-    if (!deck) {
-      addToast('Deck not found.', 'error')
-      return
-    }
+  const loadDeck = useCallback(
+    (deckNameToLoad: string) => {
+      const existing = safeLocalStorage.getItem("lolcow_decks")
+      const decks = existing ? JSON.parse(existing) : {}
+      const deck = decks[deckNameToLoad]
 
-    setMainDeck(deck.main || [])
-    setTapeDeck(deck.tape || [])
-    setSideDeck(deck.side || [])
-    setDeckName(deck.name || deckNameToLoad)
-    setDeckDescription(deck.description || '')
-    addToast(`Deck "${deckNameToLoad}" loaded successfully!`, 'success')
-  }, [addToast])
+      if (!deck) {
+        addToast("Deck not found.", "error")
+        return
+      }
+
+      setMainDeck(deck.main || [])
+      setTapeDeck(deck.tape || [])
+      setSideDeck(deck.side || [])
+      setDeckName(deck.name || deckNameToLoad)
+      setDeckDescription(deck.description || "")
+      addToast(`Deck "${deckNameToLoad}" loaded successfully!`, "success")
+    },
+    [addToast],
+  )
 
   const deleteDeck = useCallback(() => {
     if (!selectedDeckToLoad) return
-    
-    const existing = safeLocalStorage.getItem('lolcow_decks')
+
+    const existing = safeLocalStorage.getItem("lolcow_decks")
     const decks = existing ? JSON.parse(existing) : {}
-    
+
     delete decks[selectedDeckToLoad]
-    
-    if (safeLocalStorage.setItem('lolcow_decks', JSON.stringify(decks))) {
+
+    if (safeLocalStorage.setItem("lolcow_decks", JSON.stringify(decks))) {
       setSavedDecks(Object.keys(decks))
       const deletedName = selectedDeckToLoad
-      setSelectedDeckToLoad('')
-      addToast(`Deck "${deletedName}" deleted successfully.`, 'success')
+      setSelectedDeckToLoad("")
+      addToast(`Deck "${deletedName}" deleted successfully.`, "success")
     } else {
-      addToast('Failed to delete deck - localStorage not available', 'error')
+      addToast("Failed to delete deck - localStorage not available", "error")
     }
   }, [selectedDeckToLoad, addToast])
 
   const deleteDeckWithConfirmation = useCallback(() => {
     if (!selectedDeckToLoad) return
-    
+
     if (!confirm(`Are you sure you want to delete "${selectedDeckToLoad}"?`)) return
-    
+
     deleteDeck()
   }, [selectedDeckToLoad, deleteDeck])
 
   const clearAllDecks = useCallback(() => {
-    if (!confirm('Are you sure you want to clear all decks?')) return
+    if (!confirm("Are you sure you want to clear all decks?")) return
     setMainDeck([])
     setTapeDeck([])
     setSideDeck([])
@@ -1292,138 +1341,154 @@ export default function DeckbuilderPage() {
 
   const exportDeck = useCallback(() => {
     if (!deckValidation.isTournamentLegal) {
-      addToast('Cannot export: Deck is not tournament legal. Please ensure you have at least 40 cards in main deck and exactly 10 cards in tape deck.', 'error')
+      addToast(
+        "Cannot export: Deck is not tournament legal. Please ensure you have at least 40 cards in main deck and exactly 10 cards in tape deck.",
+        "error",
+      )
       return
     }
 
     const formatDeckSection = (title: string, deckCards: CardData[]) => {
-      if (deckCards.length === 0) return ''
-      
-      const grouped = deckCards.reduce((acc, card) => {
-        acc[card.name] = (acc[card.name] || 0) + 1
-        return acc
-      }, {} as Record<string, number>)
+      if (deckCards.length === 0) return ""
+
+      const grouped = deckCards.reduce(
+        (acc, card) => {
+          acc[card.name] = (acc[card.name] || 0) + 1
+          return acc
+        },
+        {} as Record<string, number>,
+      )
 
       const lines = Object.entries(grouped)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([name, count]) => `${count}x ${name}`)
 
-      return `${title} (${deckCards.length}):\n${lines.join('\n')}\n\n`
+      return `${title} (${deckCards.length}):\n${lines.join("\n")}\n\n`
     }
 
     const deckText = [
-      `=== ${deckName || 'Untitled Deck'} ===\n`,
-      deckDescription ? `${deckDescription}\n\n` : '',
-      formatDeckSection('Main Deck', mainDeck),
-      formatDeckSection('Tape Deck', tapeDeck),
-      formatDeckSection('Side Deck', sideDeck),
-      '=== End Deck ==='
-    ].join('')
+      `=== ${deckName || "Untitled Deck"} ===\n`,
+      deckDescription ? `${deckDescription}\n\n` : "",
+      formatDeckSection("Main Deck", mainDeck),
+      formatDeckSection("Tape Deck", tapeDeck),
+      formatDeckSection("Side Deck", sideDeck),
+      "=== End Deck ===",
+    ].join("")
 
-    const blob = new Blob([deckText], { type: 'text/plain' })
+    const blob = new Blob([deckText], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
+    const link = document.createElement("a")
     link.href = url
-    link.download = `${deckName || 'lolcow_deck'}.txt`
+    link.download = `${deckName || "lolcow_deck"}.txt`
     link.click()
     URL.revokeObjectURL(url)
-    
-    addToast('Deck exported successfully!', 'success')
+
+    addToast("Deck exported successfully!", "success")
   }, [deckValidation.isTournamentLegal, deckName, deckDescription, mainDeck, tapeDeck, sideDeck, addToast])
 
   const generateShareableText = useCallback(() => {
     const formatDeckSection = (title: string, deckCards: CardData[]) => {
-      if (deckCards.length === 0) return ''
-      
-      const grouped = deckCards.reduce((acc, card) => {
-        acc[card.name] = (acc[card.name] || 0) + 1
-        return acc
-      }, {} as Record<string, number>)
+      if (deckCards.length === 0) return ""
+
+      const grouped = deckCards.reduce(
+        (acc, card) => {
+          acc[card.name] = (acc[card.name] || 0) + 1
+          return acc
+        },
+        {} as Record<string, number>,
+      )
 
       const lines = Object.entries(grouped)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([name, count]) => `${count}x ${name}`)
 
-      return `${title} (${deckCards.length}):\n${lines.join('\n')}\n\n`
+      return `${title} (${deckCards.length}):\n${lines.join("\n")}\n\n`
     }
 
     const deckText = [
-      `=== ${deckName || 'Untitled Deck'} ===\n`,
-      deckDescription ? `${deckDescription}\n\n` : '',
-      formatDeckSection('Main Deck', mainDeck),
-      formatDeckSection('Tape Deck', tapeDeck),
-      formatDeckSection('Side Deck', sideDeck),
-      '=== End Deck ==='
-    ].join('')
+      `=== ${deckName || "Untitled Deck"} ===\n`,
+      deckDescription ? `${deckDescription}\n\n` : "",
+      formatDeckSection("Main Deck", mainDeck),
+      formatDeckSection("Tape Deck", tapeDeck),
+      formatDeckSection("Side Deck", sideDeck),
+      "=== End Deck ===",
+    ].join("")
 
-    navigator.clipboard.writeText(deckText).then(() => {
-      addToast('Deck list copied to clipboard!', 'success')
-    }).catch(() => {
-      addToast('Failed to copy to clipboard', 'error')
-    })
+    navigator.clipboard
+      .writeText(deckText)
+      .then(() => {
+        addToast("Deck list copied to clipboard!", "success")
+      })
+      .catch(() => {
+        addToast("Failed to copy to clipboard", "error")
+      })
   }, [deckName, deckDescription, mainDeck, tapeDeck, sideDeck, addToast])
 
   // Import functions
-  const parseTextDeckList = useCallback((text: string) => {
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0)
-    const importedMain: CardData[] = []
-    const importedTape: CardData[] = []
-    const importedSide: CardData[] = []
-    
-    let currentSection: 'main' | 'tape' | 'side' | 'none' = 'none'
-    let deckNameFromText = ''
+  const parseTextDeckList = useCallback(
+    (text: string) => {
+      const lines = text
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+      const importedMain: CardData[] = []
+      const importedTape: CardData[] = []
+      const importedSide: CardData[] = []
 
-    for (const line of lines) {
-      if (line.startsWith('===') && line.endsWith('===')) {
-        deckNameFromText = line.replace(/=/g, '').trim()
-        continue
-      }
+      let currentSection: "main" | "tape" | "side" | "none" = "none"
+      let deckNameFromText = ""
 
-      if (line.toLowerCase().includes('main deck')) {
-        currentSection = 'main'
-        continue
-      }
-      if (line.toLowerCase().includes('tape deck')) {
-        currentSection = 'tape'
-        continue
-      }
-      if (line.toLowerCase().includes('side deck')) {
-        currentSection = 'side'
-        continue
-      }
+      for (const line of lines) {
+        if (line.startsWith("===") && line.endsWith("===")) {
+          deckNameFromText = line.replace(/=/g, "").trim()
+          continue
+        }
 
-      if (line.toLowerCase().includes('=== end deck ===') || currentSection === 'none') {
-        continue
-      }
+        if (line.toLowerCase().includes("main deck")) {
+          currentSection = "main"
+          continue
+        }
+        if (line.toLowerCase().includes("tape deck")) {
+          currentSection = "tape"
+          continue
+        }
+        if (line.toLowerCase().includes("side deck")) {
+          currentSection = "side"
+          continue
+        }
 
-      const cardMatch = line.match(/^(\d+)x?\s+(.+)$/i)
-      if (cardMatch) {
-        const count = parseInt(cardMatch[1])
-        const cardName = cardMatch[2].trim()
-        
-        const foundCard = cards.find(card => 
-          card.name.toLowerCase() === cardName.toLowerCase()
-        )
-        
-        if (foundCard) {
-          const targetDeck = currentSection === 'main' ? importedMain :
-                           currentSection === 'tape' ? importedTape : importedSide
-          
-          for (let i = 0; i < count; i++) {
-            targetDeck.push(foundCard)
+        if (line.toLowerCase().includes("=== end deck ===") || currentSection === "none") {
+          continue
+        }
+
+        const cardMatch = line.match(/^(\d+)x?\s+(.+)$/i)
+        if (cardMatch) {
+          const count = Number.parseInt(cardMatch[1])
+          const cardName = cardMatch[2].trim()
+
+          const foundCard = cards.find((card) => card.name.toLowerCase() === cardName.toLowerCase())
+
+          if (foundCard) {
+            const targetDeck =
+              currentSection === "main" ? importedMain : currentSection === "tape" ? importedTape : importedSide
+
+            for (let i = 0; i < count; i++) {
+              targetDeck.push(foundCard)
+            }
           }
         }
       }
-    }
 
-    return {
-      main: importedMain,
-      tape: importedTape,
-      side: importedSide,
-      name: deckNameFromText,
-      description: ''
-    }
-  }, [cards])
+      return {
+        main: importedMain,
+        tape: importedTape,
+        side: importedSide,
+        name: deckNameFromText,
+        description: "",
+      }
+    },
+    [cards],
+  )
 
   const importFromText = useCallback(() => {
     try {
@@ -1432,54 +1497,63 @@ export default function DeckbuilderPage() {
       setTapeDeck(parsed.tape)
       setSideDeck(parsed.side)
       if (parsed.name) setDeckName(parsed.name)
-      setImportText('')
+      setImportText("")
       setShowImportModal(false)
-      addToast(`Deck imported! ${parsed.main.length} main, ${parsed.tape.length} tape, ${parsed.side.length} side cards`, 'success')
+      addToast(
+        `Deck imported! ${parsed.main.length} main, ${parsed.tape.length} tape, ${parsed.side.length} side cards`,
+        "success",
+      )
     } catch (error) {
-      addToast('Error parsing deck list. Please check the format.', 'error')
+      addToast("Error parsing deck list. Please check the format.", "error")
     }
   }, [importText, parseTextDeckList, addToast])
 
-  const sortedDeckCards = useCallback((deckCards: CardData[]) => {
-    const grouped = deckCards.reduce((acc, card) => {
-      const key = card.name
-      if (acc[key]) {
-        acc[key].count++
-      } else {
-        acc[key] = { card: { ...card }, count: 1 }
-      }
-      return acc
-    }, {} as Record<string, { card: CardData; count: number }>)
+  const sortedDeckCards = useCallback(
+    (deckCards: CardData[]) => {
+      const grouped = deckCards.reduce(
+        (acc, card) => {
+          const key = card.name
+          if (acc[key]) {
+            acc[key].count++
+          } else {
+            acc[key] = { card: { ...card }, count: 1 }
+          }
+          return acc
+        },
+        {} as Record<string, { card: CardData; count: number }>,
+      )
 
-    return Object.entries(grouped).sort(([a, dataA], [b, dataB]) => {
-      switch (deckSort) {
-        case 'name':
-          return a.localeCompare(b)
-        case 'type':
-          return (dataA.card.type || '').localeCompare(dataB.card.type || '')
-        case 'tape_cost':
-          return (dataA.card.tape_cost || 0) - (dataB.card.tape_cost || 0)
-        case 'attack':
-          return (dataA.card.attack || 0) - (dataB.card.attack || 0)
-        case 'health':
-          return (dataA.card.health || 0) - (dataB.card.health || 0)
-        default:
-          return a.localeCompare(b)
-      }
-    })
-  }, [deckSort])
+      return Object.entries(grouped).sort(([a, dataA], [b, dataB]) => {
+        switch (deckSort) {
+          case "name":
+            return a.localeCompare(b)
+          case "type":
+            return (dataA.card.type || "").localeCompare(dataB.card.type || "")
+          case "tape_cost":
+            return (dataA.card.tape_cost || 0) - (dataB.card.tape_cost || 0)
+          case "attack":
+            return (dataA.card.attack || 0) - (dataB.card.attack || 0)
+          case "health":
+            return (dataA.card.health || 0) - (dataB.card.health || 0)
+          default:
+            return a.localeCompare(b)
+        }
+      })
+    },
+    [deckSort],
+  )
 
   // Playtesting functions
   const drawHand = useCallback(() => {
     const shuffled = [...mainDeck].sort(() => Math.random() - 0.5)
     const openingHand = shuffled.slice(0, 5)
     const remaining = shuffled.slice(5)
-    
+
     setHand(openingHand)
     setDeckForDrawing(remaining)
     setHasUsedMulligan(false)
     setSelectedMulliganCards([])
-    
+
     if (openingHand.length === 5) {
       setShowMulliganModal(true)
     }
@@ -1488,16 +1562,16 @@ export default function DeckbuilderPage() {
   const drawCard = useCallback(() => {
     if (hand.length >= 10) return
     if (deckForDrawing.length === 0) return
-    
+
     const newCard = deckForDrawing[0]
     const remainingDeck = deckForDrawing.slice(1)
-    
-    setHand(prev => [...prev, newCard])
+
+    setHand((prev) => [...prev, newCard])
     setDeckForDrawing(remainingDeck)
   }, [hand.length, deckForDrawing])
 
   const removeFromHand = useCallback((index: number) => {
-    setHand(prev => prev.filter((_, i) => i !== index))
+    setHand((prev) => prev.filter((_, i) => i !== index))
   }, [])
 
   const keepHand = useCallback(() => {
@@ -1511,14 +1585,14 @@ export default function DeckbuilderPage() {
       return
     }
 
-    const cardsToMulligan = selectedMulliganCards.map(index => hand[index])
+    const cardsToMulligan = selectedMulliganCards.map((index) => hand[index])
     const cardsToKeep = hand.filter((_, index) => !selectedMulliganCards.includes(index))
-    
+
     const newCards = deckForDrawing.slice(0, selectedMulliganCards.length)
     const remainingDeck = deckForDrawing.slice(selectedMulliganCards.length)
-    
+
     const newDeckForDrawing = [...remainingDeck, ...cardsToMulligan]
-    
+
     setHand([...cardsToKeep, ...newCards])
     setDeckForDrawing(newDeckForDrawing)
     setSelectedMulliganCards([])
@@ -1527,11 +1601,7 @@ export default function DeckbuilderPage() {
   }, [selectedMulliganCards, hand, deckForDrawing, keepHand])
 
   const toggleMulliganCard = useCallback((index: number) => {
-    setSelectedMulliganCards(prev => 
-      prev.includes(index) 
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
-    )
+    setSelectedMulliganCards((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]))
   }, [])
 
   if (loading) {
@@ -1539,7 +1609,7 @@ export default function DeckbuilderPage() {
       <div className="min-h-screen bg-slate-950 text-white">
         <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-slate-700 rounded animate-pulse"></div>
+            <div className="size-8 bg-slate-700 rounded animate-pulse"></div>
             <div>
               <div className="w-32 h-5 bg-slate-700 rounded animate-pulse mb-1"></div>
               <div className="w-20 h-3 bg-slate-700 rounded animate-pulse"></div>
@@ -1547,7 +1617,7 @@ export default function DeckbuilderPage() {
           </div>
           <div className="w-16 h-8 bg-slate-700 rounded animate-pulse"></div>
         </div>
-        
+
         <div className="flex">
           <div className="w-72 bg-slate-900 p-4 border-r border-slate-700 space-y-4">
             {Array.from({ length: 8 }, (_, i) => (
@@ -1557,7 +1627,7 @@ export default function DeckbuilderPage() {
               </div>
             ))}
           </div>
-          
+
           <div className="flex-1 p-4">
             <div className="mb-4 space-y-3">
               <div className="flex gap-2">
@@ -1569,7 +1639,7 @@ export default function DeckbuilderPage() {
             </div>
             <LoadingGrid />
           </div>
-          
+
           <div className="w-72 bg-slate-900 p-4 border-l border-slate-700 space-y-4">
             {Array.from({ length: 3 }, (_, i) => (
               <div key={i} className="space-y-2">
@@ -1591,13 +1661,13 @@ export default function DeckbuilderPage() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-950 text-white">
         <div className="text-center p-6 bg-slate-800 rounded-lg border border-red-500/30 animate-in zoom-in-95 slide-in-from-bottom-4 duration-500">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <XCircle className="w-16 h-16 text-red-400 animate-pulse" />
+          <div className="relative size-16 mx-auto mb-4">
+            <XCircle className="size-16 text-red-400 animate-pulse" />
             <div className="absolute inset-0 border-2 border-red-400 rounded-full animate-ping opacity-20"></div>
           </div>
           <p className="text-red-300 mb-2 animate-in slide-in-from-bottom-2 duration-700">Error: {error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="bg-red-600 hover:bg-red-500 active:bg-red-700 px-4 py-2 rounded font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg animate-in slide-in-from-bottom-4"
           >
             Retry Loading
@@ -1621,20 +1691,22 @@ export default function DeckbuilderPage() {
       </div>
 
       {/* Filter panel */}
-      <aside className={`
-        ${mobileFiltersOpen ? 'block' : 'hidden'} lg:block
+      <aside
+        className={`
+        ${mobileFiltersOpen ? "block" : "hidden"} lg:block
         w-full lg:w-72 bg-slate-900 p-4 border-r border-slate-700 
         overflow-y-auto h-full lg:sticky lg:top-0
-        ${mobileFiltersOpen ? 'absolute z-20' : ''}
-      `}>
+        ${mobileFiltersOpen ? "absolute z-20" : ""}
+      `}
+      >
         <div className="hidden lg:block mb-4">
           <h1 className="text-xl font-bold mb-1 text-amber-300">LolCow TCG</h1>
           <p className="text-violet-300 text-sm">Deckbuilder</p>
         </div>
-        
-        <FilterPanel 
-          filters={filters} 
-          setFilters={setFilters} 
+
+        <FilterPanel
+          filters={filters}
+          setFilters={setFilters}
           toggleKeyword={toggleKeyword}
           cards={cards}
           expansions={expansions}
@@ -1699,10 +1771,14 @@ export default function DeckbuilderPage() {
                 onClick={exportDeck}
                 disabled={!deckValidation.isTournamentLegal}
                 className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 disabled:bg-slate-600 disabled:opacity-50 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
-                title={!deckValidation.isTournamentLegal ? 'Deck must be tournament legal to export' : 'Export tournament legal deck as text file'}
+                title={
+                  !deckValidation.isTournamentLegal
+                    ? "Deck must be tournament legal to export"
+                    : "Export tournament legal deck as text file"
+                }
               >
                 <Download size={14} className="transition-all duration-200 group-hover:translate-y-0.5" />
-                Export {!deckValidation.isTournamentLegal && '🔒'}
+                Export {!deckValidation.isTournamentLegal && "🔒"}
               </button>
               <button
                 onClick={() => setShowImportModal(true)}
@@ -1753,13 +1829,19 @@ export default function DeckbuilderPage() {
           {(deckValidation.errors.length > 0 || deckValidation.warnings.length > 0) && (
             <div className="mb-3 p-2 bg-slate-800 rounded border border-slate-600 space-y-1">
               {deckValidation.errors.map((error, i) => (
-                <div key={i} className="flex items-center gap-2 text-red-300 text-xs bg-red-900/20 p-2 rounded border border-red-500/30">
+                <div
+                  key={i}
+                  className="flex items-center gap-2 text-red-300 text-xs bg-red-900/20 p-2 rounded border border-red-500/30"
+                >
                   <XCircle size={12} className="text-red-400" />
                   {error}
                 </div>
               ))}
               {deckValidation.warnings.map((warning, i) => (
-                <div key={i} className="flex items-center gap-2 text-amber-300 text-xs bg-amber-900/20 p-2 rounded border border-amber-500/30">
+                <div
+                  key={i}
+                  className="flex items-center gap-2 text-amber-300 text-xs bg-amber-900/20 p-2 rounded border border-amber-500/30"
+                >
                   <AlertTriangle size={12} className="text-amber-400" />
                   {warning}
                 </div>
@@ -1785,7 +1867,7 @@ export default function DeckbuilderPage() {
                 disabled={mainDeck.length === 0}
               >
                 <span className="flex items-center gap-1">
-                  New Game 
+                  New Game
                   <span className="transition-all duration-200 group-hover:rotate-12">(Draw 5)</span>
                 </span>
               </button>
@@ -1826,7 +1908,9 @@ export default function DeckbuilderPage() {
             </div>
             <div className="text-xs text-slate-400 transition-all duration-300">
               {deckForDrawing.length > 0 && (
-                <span className="animate-in slide-in-from-left-4 duration-500">Cards left in deck: <span className="font-medium text-slate-300">{deckForDrawing.length}</span></span>
+                <span className="animate-in slide-in-from-left-4 duration-500">
+                  Cards left in deck: <span className="font-medium text-slate-300">{deckForDrawing.length}</span>
+                </span>
               )}
               {mainDeck.length === 0 && (
                 <span className="italic animate-pulse">Add cards to your main deck to start playtesting</span>
@@ -1874,28 +1958,28 @@ export default function DeckbuilderPage() {
           </select>
         </div>
 
-        <DeckList 
-          title="Main Deck" 
-          cards={sortedDeckCards(mainDeck)} 
-          onRemove={(c) => removeCard(c, 'main')}
+        <DeckList
+          title="Main Deck"
+          cards={sortedDeckCards(mainDeck)}
+          onRemove={(c) => removeCard(c, "main")}
           onPreview={setPreviewCard}
           validation={deckValidation}
           deckType="main"
           onAddToDeck={addCardToDeck}
         />
-        <DeckList 
-          title="Tape Deck" 
-          cards={sortedDeckCards(tapeDeck)} 
-          onRemove={(c) => removeCard(c, 'tape')}
+        <DeckList
+          title="Tape Deck"
+          cards={sortedDeckCards(tapeDeck)}
+          onRemove={(c) => removeCard(c, "tape")}
           onPreview={setPreviewCard}
           validation={deckValidation}
           deckType="tape"
           onAddToDeck={addCardToDeck}
         />
-        <DeckList 
-          title="Side Deck" 
-          cards={sortedDeckCards(sideDeck)} 
-          onRemove={(c) => removeCard(c, 'side')}
+        <DeckList
+          title="Side Deck"
+          cards={sortedDeckCards(sideDeck)}
+          onRemove={(c) => removeCard(c, "side")}
           onPreview={setPreviewCard}
           validation={deckValidation}
           deckType="side"
@@ -1924,7 +2008,7 @@ export default function DeckbuilderPage() {
                 ✕
               </button>
             </div>
-            
+
             {deckStats.totalCards > 0 ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1932,9 +2016,14 @@ export default function DeckbuilderPage() {
                     <h4 className="font-medium mb-3 text-blue-200 text-base">Tape Cost Distribution</h4>
                     <div className="h-48 mb-3">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={Object.entries(deckStats.tapeCostDistribution).map(([cost, count]) => ({ cost: `Cost ${cost}`, count }))}>
-                          <XAxis dataKey="cost" tick={{ fontSize: 12, fill: '#93c5fd' }} />
-                          <YAxis tick={{ fontSize: 12, fill: '#93c5fd' }} />
+                        <BarChart
+                          data={Object.entries(deckStats.tapeCostDistribution).map(([cost, count]) => ({
+                            cost: `Cost ${cost}`,
+                            count,
+                          }))}
+                        >
+                          <XAxis dataKey="cost" tick={{ fontSize: 12, fill: "#93c5fd" }} />
+                          <YAxis tick={{ fontSize: 12, fill: "#93c5fd" }} />
                           <Bar dataKey="count" fill="#3b82f6" />
                         </BarChart>
                       </ResponsiveContainer>
@@ -1943,20 +2032,25 @@ export default function DeckbuilderPage() {
                       Average Cost: <span className="font-medium text-blue-300">{deckStats.averageTapeCost}</span>
                     </div>
                   </div>
-                  
+
                   <div className="bg-emerald-900/30 p-4 rounded border border-emerald-500/20">
                     <h4 className="font-medium mb-3 text-emerald-200 text-base">Type Breakdown</h4>
                     <div className="h-48 mb-3">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={Object.entries(deckStats.typeBreakdown).map(([type, count]) => ({ name: type, value: count }))}
+                            data={Object.entries(deckStats.typeBreakdown).map(([type, count]) => ({
+                              name: type,
+                              value: count,
+                            }))}
                             cx="50%"
                             cy="50%"
                             outerRadius={80}
                             fill="#10b981"
                             dataKey="value"
-                            label={(entry: any) => `${entry.name} ${((entry.value / deckStats.totalCards) * 100).toFixed(0)}%`}
+                            label={(entry: any) =>
+                              `${entry.name} ${((entry.value / deckStats.totalCards) * 100).toFixed(0)}%`
+                            }
                             labelLine={false}
                             fontSize={10}
                           />
@@ -1972,18 +2066,20 @@ export default function DeckbuilderPage() {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="bg-amber-900/30 p-4 rounded border border-amber-500/20">
                     <h4 className="font-medium mb-3 text-amber-200 text-base">Deck Overview</h4>
                     <div className="h-48 mb-3">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={[
-                          { deck: 'Main', count: mainDeck.length },
-                          { deck: 'Tape', count: tapeDeck.length },
-                          { deck: 'Side', count: sideDeck.length }
-                        ]}>
-                          <XAxis dataKey="deck" tick={{ fontSize: 12, fill: '#fbbf24' }} />
-                          <YAxis tick={{ fontSize: 12, fill: '#fbbf24' }} />
+                        <BarChart
+                          data={[
+                            { deck: "Main", count: mainDeck.length },
+                            { deck: "Tape", count: tapeDeck.length },
+                            { deck: "Side", count: sideDeck.length },
+                          ]}
+                        >
+                          <XAxis dataKey="deck" tick={{ fontSize: 12, fill: "#fbbf24" }} />
+                          <YAxis tick={{ fontSize: 12, fill: "#fbbf24" }} />
                           <Bar dataKey="count" fill="#f59e0b" />
                         </BarChart>
                       </ResponsiveContainer>
@@ -2015,7 +2111,12 @@ export default function DeckbuilderPage() {
                     <div>
                       <span className="text-slate-400">Most Common Type:</span>
                       <span className="ml-2 text-white font-medium">
-                        {Object.entries(deckStats.typeBreakdown).reduce((a, b) => a[1] > b[1] ? a : b, ['None', 0])[0]}
+                        {
+                          Object.entries(deckStats.typeBreakdown).reduce(
+                            (a, b) => (a[1] > b[1] ? a : b),
+                            ["None", 0],
+                          )[0]
+                        }
                       </span>
                     </div>
                     <div>
@@ -2027,10 +2128,9 @@ export default function DeckbuilderPage() {
                     <div>
                       <span className="text-slate-400">Main Deck Ratio:</span>
                       <span className="ml-2 text-white font-medium">
-                        {mainDeck.length + sideDeck.length > 0 ? 
-                          `${((mainDeck.length / (mainDeck.length + sideDeck.length)) * 100).toFixed(0)}% main / ${((sideDeck.length / (mainDeck.length + sideDeck.length)) * 100).toFixed(0)}% side`
-                          : 'No cards in main/side decks'
-                        }
+                        {mainDeck.length + sideDeck.length > 0
+                          ? `${((mainDeck.length / (mainDeck.length + sideDeck.length)) * 100).toFixed(0)}% main / ${((sideDeck.length / (mainDeck.length + sideDeck.length)) * 100).toFixed(0)}% side`
+                          : "No cards in main/side decks"}
                       </span>
                     </div>
                     <div>
@@ -2078,28 +2178,28 @@ export default function DeckbuilderPage() {
                 ✕
               </button>
             </div>
-            
+
             <div className="mb-4 animate-in slide-in-from-top-4 duration-700">
               <p className="text-slate-300 text-center">
-                Choose which cards to mulligan. Selected cards will go to the <span className="text-orange-300 font-medium">bottom of your deck</span> and you will draw that many new cards.
+                Choose which cards to mulligan. Selected cards will go to the{" "}
+                <span className="text-orange-300 font-medium">bottom of your deck</span> and you will draw that many new
+                cards.
               </p>
-              <p className="text-slate-400 text-center text-sm mt-1">
-                You can select 0-5 cards to mulligan.
-              </p>
+              <p className="text-slate-400 text-center text-sm mt-1">You can select 0-5 cards to mulligan.</p>
             </div>
-            
+
             <div className="grid grid-cols-5 gap-3 mb-6">
               {hand.map((card, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className={`cursor-pointer transition-all duration-300 relative animate-in zoom-in-0 slide-in-from-bottom-4 ${
-                    selectedMulliganCards.includes(index) 
-                      ? 'ring-2 ring-orange-400 bg-orange-900/20 scale-95' 
-                      : 'hover:scale-105'
+                    selectedMulliganCards.includes(index)
+                      ? "ring-2 ring-orange-400 bg-orange-900/20 scale-95"
+                      : "hover:scale-105"
                   }`}
                   style={{ animationDelay: `${index * 100}ms` }}
                   onClick={() => toggleMulliganCard(index)}
-                  title={`${card.name} - Click to ${selectedMulliganCards.includes(index) ? 'keep' : 'mulligan'}`}
+                  title={`${card.name} - Click to ${selectedMulliganCards.includes(index) ? "keep" : "mulligan"}`}
                 >
                   <Card card={card} />
                   {selectedMulliganCards.includes(index) && (
@@ -2112,16 +2212,14 @@ export default function DeckbuilderPage() {
                 </div>
               ))}
             </div>
-            
+
             <div className="flex items-center justify-between animate-in slide-in-from-bottom-4 duration-500">
               <div className="text-sm text-slate-400 transition-all duration-300">
-                {selectedMulliganCards.length === 0 ? (
-                  'No cards selected - you will keep your current hand'
-                ) : selectedMulliganCards.length === 1 ? (
-                  '1 card selected for mulligan'
-                ) : (
-                  `${selectedMulliganCards.length} cards selected for mulligan`
-                )}
+                {selectedMulliganCards.length === 0
+                  ? "No cards selected - you will keep your current hand"
+                  : selectedMulliganCards.length === 1
+                    ? "1 card selected for mulligan"
+                    : `${selectedMulliganCards.length} cards selected for mulligan`}
               </div>
               <div className="flex gap-2">
                 <button
@@ -2135,7 +2233,7 @@ export default function DeckbuilderPage() {
                   disabled={selectedMulliganCards.length === 0}
                   className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:bg-slate-600 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 hover:shadow-lg"
                 >
-                  {selectedMulliganCards.length === 0 ? 'Select Cards' : `Mulligan ${selectedMulliganCards.length}`}
+                  {selectedMulliganCards.length === 0 ? "Select Cards" : `Mulligan ${selectedMulliganCards.length}`}
                 </button>
               </div>
             </div>
@@ -2154,9 +2252,7 @@ export default function DeckbuilderPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-amber-300">
-                Your Hand ({hand.length} cards)
-              </h2>
+              <h2 className="text-xl font-bold text-amber-300">Your Hand ({hand.length} cards)</h2>
               <div className="flex items-center gap-2">
                 {hand.length === 5 && !hasUsedMulligan && (
                   <button
@@ -2177,9 +2273,7 @@ export default function DeckbuilderPage() {
                   Draw Card
                 </button>
                 {deckForDrawing.length > 0 && (
-                  <span className="text-xs text-slate-400">
-                    ({deckForDrawing.length} left)
-                  </span>
+                  <span className="text-xs text-slate-400">({deckForDrawing.length} left)</span>
                 )}
                 <button
                   onClick={() => setShowHandModal(false)}
@@ -2189,24 +2283,26 @@ export default function DeckbuilderPage() {
                 </button>
               </div>
             </div>
-            
+
             {hand.length > 0 && (
               <div>
                 <p className="text-slate-300 mb-4 text-center text-sm">
                   <span className="text-violet-300 font-medium">Click any card to discard it from your hand</span>
                 </p>
-                <div className={`grid gap-3 ${
-                  hand.length <= 5 
-                    ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5' 
-                    : hand.length <= 7
-                    ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7'
-                    : hand.length <= 10
-                    ? 'grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10'
-                    : 'grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 xl:grid-cols-9 2xl:grid-cols-12'
-                }`}>
+                <div
+                  className={`grid gap-3 ${
+                    hand.length <= 5
+                      ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                      : hand.length <= 7
+                        ? "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7"
+                        : hand.length <= 10
+                          ? "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10"
+                          : "grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 xl:grid-cols-9 2xl:grid-cols-12"
+                  }`}
+                >
                   {hand.map((card, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="cursor-pointer hover:scale-105 transition-all duration-200"
                       onClick={() => removeFromHand(index)}
                       title={`${card.name} - Click to discard`}
@@ -2217,7 +2313,7 @@ export default function DeckbuilderPage() {
                 </div>
               </div>
             )}
-            
+
             {hand.length === 0 && (
               <div className="text-center text-slate-400 py-8">
                 <p className="text-lg mb-1">No cards in hand</p>
@@ -2239,9 +2335,7 @@ export default function DeckbuilderPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-cyan-300">
-                Import Deck
-              </h2>
+              <h2 className="text-xl font-bold text-cyan-300">Import Deck</h2>
               <button
                 onClick={() => setShowImportModal(false)}
                 className="text-slate-400 hover:text-white text-xl hover:bg-red-500/20 rounded p-1 transition-all duration-200"
@@ -2249,7 +2343,7 @@ export default function DeckbuilderPage() {
                 ✕
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div className="p-4 bg-slate-800/50 rounded border border-slate-600/30">
                 <h3 className="text-lg font-medium text-slate-200 mb-2">Import from Text File or Paste</h3>
@@ -2257,18 +2351,25 @@ export default function DeckbuilderPage() {
                   Upload a deck file (.txt) or paste a deck list in the following format:
                 </p>
                 <div className="text-xs text-slate-500 mb-3 p-2 bg-slate-700/50 rounded font-mono">
-                  === Deck Name ===<br/>
-                  Main Deck (40):<br/>
-                  3x Card Name<br/>
-                  2x Another Card<br/>
-                  <br/>
-                  Tape Deck (10):<br/>
-                  1x Tape Card<br/>
-                  <br/>
-                  Side Deck (5):<br/>
+                  === Deck Name ===
+                  <br />
+                  Main Deck (40):
+                  <br />
+                  3x Card Name
+                  <br />
+                  2x Another Card
+                  <br />
+                  <br />
+                  Tape Deck (10):
+                  <br />
+                  1x Tape Card
+                  <br />
+                  <br />
+                  Side Deck (5):
+                  <br />
                   2x Side Card
                 </div>
-                
+
                 <div className="mb-4">
                   <label className="block text-sm text-slate-300 mb-2">Upload Text File:</label>
                   <input
@@ -2283,7 +2384,7 @@ export default function DeckbuilderPage() {
                           setImportText(text)
                         }
                         reader.readAsText(file)
-                        e.target.value = ''
+                        e.target.value = ""
                       }
                     }}
                     className="w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 file:cursor-pointer cursor-pointer"
@@ -2299,7 +2400,7 @@ export default function DeckbuilderPage() {
                     className="w-full h-48 p-3 bg-slate-800 text-white rounded border border-slate-600 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/20 transition-all duration-200 text-sm font-mono resize-none"
                   />
                 </div>
-                
+
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={importFromText}
@@ -2309,7 +2410,7 @@ export default function DeckbuilderPage() {
                     Import Deck
                   </button>
                   <button
-                    onClick={() => setImportText('')}
+                    onClick={() => setImportText("")}
                     className="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200"
                   >
                     Clear
@@ -2318,7 +2419,8 @@ export default function DeckbuilderPage() {
               </div>
 
               <div className="p-3 bg-blue-900/20 rounded border border-blue-500/20 text-xs text-blue-200">
-                <strong className="text-blue-300">Import Tips:</strong><br/>
+                <strong className="text-blue-300">Import Tips:</strong>
+                <br />
                 <div className="mt-1 space-y-1">
                   <div>• Upload .txt files exported from this deckbuilder</div>
                   <div>• Text format is flexible - section headers can be "Main Deck", "Tape Deck", "Side Deck"</div>
@@ -2348,16 +2450,16 @@ export default function DeckbuilderPage() {
             >
               ✕
             </button>
-            <h2 className="text-xl font-bold mb-3 text-amber-300 pr-10">
-              {previewCard.name}
-            </h2>
+            <h2 className="text-xl font-bold mb-3 text-amber-300 pr-10">{previewCard.name}</h2>
             {previewCard.imageUrl && (
-              <img
-                src={previewCard.imageUrl}
+              <Image
+                src={previewCard.imageUrl || "/placeholder.svg"}
                 alt={previewCard.name}
+                width={400}
+                height={560}
                 className="w-full rounded mb-3 border border-slate-600/30"
                 onError={(e) => {
-                  e.currentTarget.style.display = 'none'
+                  e.currentTarget.style.display = "none"
                 }}
               />
             )}
@@ -2366,7 +2468,8 @@ export default function DeckbuilderPage() {
                 <div className="flex justify-between p-2 bg-slate-800/50 rounded border border-slate-600/30">
                   <span className="text-slate-400 font-medium">Type:</span>
                   <span className="text-white font-medium">
-                    {previewCard.type}{previewCard.subtype ? ` - ${previewCard.subtype}` : ''}
+                    {previewCard.type}
+                    {previewCard.subtype ? ` - ${previewCard.subtype}` : ""}
                   </span>
                 </div>
               )}
@@ -2381,7 +2484,7 @@ export default function DeckbuilderPage() {
                   <span className="text-amber-300 font-medium">Combat Stats:</span>
                   <span className="text-amber-100 font-bold">
                     {previewCard.attack !== undefined && `${previewCard.attack} ATK`}
-                    {previewCard.attack !== undefined && previewCard.health !== undefined && ' / '}
+                    {previewCard.attack !== undefined && previewCard.health !== undefined && " / "}
                     {previewCard.health !== undefined && `${previewCard.health} HP`}
                   </span>
                 </div>
@@ -2390,11 +2493,13 @@ export default function DeckbuilderPage() {
                 <div className="p-2 bg-blue-900/30 rounded border border-blue-500/30">
                   <span className="text-blue-300 font-medium">Keywords:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {(Array.isArray(previewCard.keywords) ? previewCard.keywords : [previewCard.keywords]).map((keyword, i) => (
-                      <span key={i} className="bg-blue-600/50 text-blue-100 px-2 py-1 rounded text-xs font-medium">
-                        {keyword}
-                      </span>
-                    ))}
+                    {(Array.isArray(previewCard.keywords) ? previewCard.keywords : [previewCard.keywords]).map(
+                      (keyword, i) => (
+                        <span key={i} className="bg-blue-600/50 text-blue-100 px-2 py-1 rounded text-xs font-medium">
+                          {keyword}
+                        </span>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
@@ -2438,8 +2543,8 @@ export default function DeckbuilderPage() {
                 </div>
               )}
             </div>
-            
-            {previewCard.type !== 'Token' && (
+
+            {previewCard.type !== "Token" && (
               <div className="mt-4 space-y-3">
                 <div className="p-3 bg-slate-800/30 rounded border border-slate-600/30">
                   <QuantitySelector
@@ -2449,12 +2554,12 @@ export default function DeckbuilderPage() {
                     label="Add Quantity"
                   />
                 </div>
-                
+
                 <div className="flex flex-wrap gap-2">
-                  {previewCard.type !== 'Tape' && (
+                  {previewCard.type !== "Tape" && (
                     <button
                       onClick={() => {
-                        addCardToDeck(previewCard, 'main', previewQuantity)
+                        addCardToDeck(previewCard, "main", previewQuantity)
                         setPreviewCard(null)
                       }}
                       className="bg-green-600 hover:bg-green-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
@@ -2462,11 +2567,11 @@ export default function DeckbuilderPage() {
                       Add {previewQuantity}x to Main
                     </button>
                   )}
-                  
-                  {previewCard.type === 'Tape' && (
+
+                  {previewCard.type === "Tape" && (
                     <button
                       onClick={() => {
-                        addCardToDeck(previewCard, 'tape', previewQuantity)
+                        addCardToDeck(previewCard, "tape", previewQuantity)
                         setPreviewCard(null)
                       }}
                       className="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
@@ -2474,10 +2579,10 @@ export default function DeckbuilderPage() {
                       Add {previewQuantity}x to Tape
                     </button>
                   )}
-                  
+
                   <button
                     onClick={() => {
-                      addCardToDeck(previewCard, 'side', previewQuantity)
+                      addCardToDeck(previewCard, "side", previewQuantity)
                       setPreviewCard(null)
                     }}
                     className="bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"

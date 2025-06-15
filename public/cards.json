@@ -3579,16 +3579,16 @@
     "name": "Dark Side Becky, Puppeteer",
     "tape_cost": 2,
     "type": "scribe",
-    "subtype": "Dramatist",
-    "effect": "spin: Gain control of target spun character until the end of your Outro. It remains in its current state.",
-    "keywords": "recluse",
+    "subtype": "Puppeteer",
+    "effect": "When this enters the field, create a 'Puppet' character token with 20 attack and 20 health.",
+    "keywords": "",
     "flavor_text": "She pulls the strings from backstage, feeding on chaos.",
     "attack": 30,
     "health": 40,
     "expansion": "2024 Theme Deck Prerelease",
     "id": "",
     "artist": "Artic",
-    "imageUrl": "https://pub-97dea38f85a34b80b381432fee72d609.r2.dev/Dark Side Becky Puppeteer - SRT24.png"
+    "imageUrl": "https://pub-97dea38f85a34b80b381432fee72d609.r2.dev/Dark%20Side%20Becky%20Puppeteer%20-%20SRT24.png"
   },
   {
     "name": "Rascal Invasion",
@@ -4017,7 +4017,7 @@
     "expansion": "2024 Theme Deck Prerelease",
     "id": "",
     "artist": "liquid christine",
-    "imageUrl": "https://pub-97dea38f85a34b80b381432fee72d609.r2.dev/Mirror'd Force - LCT.png"
+    "imageUrl": "https://pub-97dea38f85a34b80b381432fee72d609.r2.dev/Mirrord%20Force%20-%20SRT24.png"
   },
   {
     "name": "I WANT IT OFF THE INTERNET!",
