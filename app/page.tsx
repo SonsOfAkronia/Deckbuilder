@@ -65,6 +65,39 @@ type DeckData = {
 
 type SortOption = 'name' | 'type' | 'tape_cost' | 'attack' | 'health'
 
+// Helper function to safely access localStorage
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return typeof window !== 'undefined' ? localStorage.getItem(key) : null
+    } catch {
+      return null
+    }
+  },
+  setItem: (key: string, value: string): boolean => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(key, value)
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  },
+  removeItem: (key: string): boolean => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(key)
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
+}
+
 // Toast Component
 function Toast({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
   useEffect(() => {
@@ -220,35 +253,34 @@ function Card({ card }: { card: CardData }) {
             }}
           />
         </div>
-     )}
-{(imageError || !card?.imageUrl) && (
-  <div className="w-full h-24 bg-slate-700 rounded mb-2 flex items-center justify-center text-xs text-slate-400 border border-slate-600/30">
-    No Image
-  </div>
-)}
-<div
-  className="text-xs font-semibold text-white mb-1 leading-tight"
-  style={{ fontSize: card?.name?.length > 20 ? '10px' : '12px' }}
->
-  {card?.name ?? 'Unknown'}
-</div>
-<div className="text-xs text-slate-300 mb-1">
-  {card?.type}{card?.subtype ? ` - ${card.subtype}` : ''}
-</div>
-{card?.tape_cost !== undefined && (
-  <div className="text-xs text-violet-300 mb-1">
-    Cost: <span className="font-medium">{card.tape_cost}</span>
-  </div>
-)}
-{(card?.attack !== undefined || card?.health !== undefined) && (
-  <div className="text-xs text-amber-300 mb-1">
-    {card?.attack !== undefined && <span>ATK: {card.attack}</span>}
-    {card?.attack !== undefined && card?.health !== undefined && ' / '}
-    {card?.health !== undefined && <span>HP: {card.health}</span>}
-  </div>
-)}
-</div>
-
+      )}
+      {(imageError || !card?.imageUrl) && (
+        <div className="w-full h-24 bg-slate-700 rounded mb-2 flex items-center justify-center text-xs text-slate-400 border border-slate-600/30">
+          No Image
+        </div>
+      )}
+      <div
+        className="text-xs font-semibold text-white mb-1 leading-tight"
+        style={{ fontSize: card?.name?.length > 20 ? '10px' : '12px' }}
+      >
+        {card?.name ?? 'Unknown'}
+      </div>
+      <div className="text-xs text-slate-300 mb-1">
+        {card?.type}{card?.subtype ? ` - ${card.subtype}` : ''}
+      </div>
+      {card?.tape_cost !== undefined && (
+        <div className="text-xs text-violet-300 mb-1">
+          Cost: <span className="font-medium">{card.tape_cost}</span>
+        </div>
+      )}
+      {(card?.attack !== undefined || card?.health !== undefined) && (
+        <div className="text-xs text-amber-300 mb-1">
+          {card?.attack !== undefined && <span>ATK: {card.attack}</span>}
+          {card?.attack !== undefined && card?.health !== undefined && ' / '}
+          {card?.health !== undefined && <span>HP: {card.health}</span>}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -643,20 +675,6 @@ function DeckList({
           />
         </div>
       )}
-
-      {/* Custom animation styles */}
-      <style jsx>{`
-        @keyframes slideInFromRight {
-          from {
-            opacity: 0;
-            transform: translateX(100px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
     </div>
   )
 }
@@ -728,7 +746,6 @@ function FilterPanel({
           <option value="Magick">Magick</option>
           <option value="Booby-Trap">Booby-Trap</option>
           <option value="Tape">Tape</option>
-          
         </select>
       </div>
 
@@ -830,7 +847,7 @@ function FilterPanel({
           <div><span className="text-amber-300">M</span> - Add to Main</div>
           <div><span className="text-emerald-300">T</span> - Add to Tape</div>
           <div><span className="text-yellow-300">S</span> - Add to Side</div>
-          <div><span className="text-cyan-300">Drag &amp; Drop</span> - Drag cards to deck sections</div>
+          <div><span className="text-cyan-300">Drag & Drop</span> - Drag cards to deck sections</div>
         </div>
         <div className="mt-1 text-purple-400 italic">
           (Hover over card first for shortcuts)
@@ -841,7 +858,7 @@ function FilterPanel({
 }
 
 export default function DeckbuilderPage() {
-  // State management
+  // All state declarations first
   const [cards, setCards] = useState<CardData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -855,16 +872,10 @@ export default function DeckbuilderPage() {
     keywords: [],
     searchText: '',
   })
-
-  // Toast system
   const [toasts, setToasts] = useState<Toast[]>([])
-
-  // Deck states
   const [mainDeck, setMainDeck] = useState<CardData[]>([])
   const [tapeDeck, setTapeDeck] = useState<CardData[]>([])
   const [sideDeck, setSideDeck] = useState<CardData[]>([])
-
-  // UI states
   const [deckName, setDeckName] = useState('')
   const [deckDescription, setDeckDescription] = useState('')
   const [savedDecks, setSavedDecks] = useState<string[]>([])
@@ -880,55 +891,158 @@ export default function DeckbuilderPage() {
   const [showHandModal, setShowHandModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
   const [importText, setImportText] = useState('')
-  const [draggedCard, setDraggedCard] = useState<CardData | null>(null)
   const [showMulliganModal, setShowMulliganModal] = useState(false)
   const [selectedMulliganCards, setSelectedMulliganCards] = useState<number[]>([])
   const [deckForDrawing, setDeckForDrawing] = useState<CardData[]>([])
   const [hasUsedMulligan, setHasUsedMulligan] = useState(false)
-  const [showCardAnimation, setShowCardAnimation] = useState<{card: CardData, target: 'main' | 'tape' | 'side', fromRect: DOMRect} | null>(null)
-
-  // Helper function to safely access localStorage
-  const safeLocalStorage = {
-    getItem: (key: string): string | null => {
-      try {
-        return typeof window !== 'undefined' ? localStorage.getItem(key) : null
-      } catch {
-        return null
-      }
-    },
-    setItem: (key: string, value: string): boolean => {
-      try {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(key, value)
-          return true
-        }
-        return false
-      } catch {
-        return false
-      }
-    },
-    removeItem: (key: string): boolean => {
-      try {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem(key)
-          return true
-        }
-        return false
-      } catch {
-        return false
-      }
-    }
-  }
 
   // Toast utility functions
   const addToast = useCallback((message: string, type: Toast['type'] = 'info', duration?: number) => {
     const id = Math.random().toString(36).substr(2, 9)
     const newToast: Toast = { id, message, type, duration }
-    setToasts([newToast]) // Replace all existing toasts with just the new one
+    setToasts([newToast])
   }, [])
 
   const dismissToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id))
+  }, [])
+
+  // Card manipulation functions
+  const canAddCardToDeck = useCallback((card: CardData, targetDeck: 'main' | 'tape' | 'side'): string | null => {
+    const allCopies = [...mainDeck, ...sideDeck, ...tapeDeck].filter(c => c.name === card.name)
+    const nameCount = allCopies.length
+    const isBasicTape = card.name?.toLowerCase().includes('basic tape')
+    const isToyTank = card.name?.toLowerCase() === 'toy tank'
+
+    if (card.name?.toLowerCase().includes('cipher tape')) {
+      return 'Cipher Tapes cannot be added to any deck.'
+    }
+
+    if (card.type === 'Token') return 'Tokens cannot be added to any deck.'
+
+    if (targetDeck === 'main') {
+      if (card.type === 'Tape') return 'Tapes cannot go in the main deck.'
+      if (mainDeck.length >= 120) return 'Main deck is full.'
+      if (!isBasicTape && !isToyTank && nameCount >= 3) return 'You can only have 3 total copies of a card between main and side decks.'
+
+      const hasScribe = mainDeck.some(c => c.type === 'Scribe')
+      const hasLolcow = mainDeck.some(c => c.type === 'LolCow')
+      const incoming = card.type
+
+      if ((hasScribe && incoming === 'LolCow') || (hasLolcow && incoming === 'Scribe')) {
+        return 'Scribes and Lolcows cannot be in the same main deck.'
+      }
+
+      return null
+    }
+
+    if (targetDeck === 'tape') {
+      if (card.type !== 'Tape') return 'Only Tapes can go in the tape deck.'
+      if (tapeDeck.length >= 10) return 'Tape deck must be exactly 10 cards.'
+      if (!isBasicTape && card.rarity === 'Special') {
+        const specialTapeCount = [...tapeDeck, ...sideDeck].filter(c => c.name === card.name).length
+        if (specialTapeCount >= 1) return 'Only 1 copy of a Special Tape allowed between tape and side decks.'
+      }
+      if (!isBasicTape && nameCount >= 3) return 'Max 3 copies total of a tape between decks.'
+      return null
+    }
+
+    if (targetDeck === 'side') {
+      if (sideDeck.length >= 10) return 'Side deck cannot exceed 10 cards.'
+      if (card.type === 'Tape') {
+        if (!isBasicTape && card.rarity === 'Special') {
+          const specialTapeCount = [...tapeDeck, ...sideDeck].filter(c => c.name === card.name).length
+          if (specialTapeCount >= 1) return 'Only 1 copy of a Special Tape allowed between tape and side decks.'
+        }
+        if (!isBasicTape && nameCount >= 3) return 'Max 3 copies total of a tape between decks.'
+        return null
+      }
+      if (!isBasicTape && !isToyTank && nameCount >= 3) return 'Only 3 total copies allowed between main and side decks.'
+      return null
+    }
+
+    return null
+  }, [mainDeck, tapeDeck, sideDeck])
+
+  const addCardToDeck = useCallback((card: CardData, targetDeck: 'main' | 'tape' | 'side', count: number = 1) => {
+    let addedCount = 0
+    
+    for (let i = 0; i < count; i++) {
+      const error = canAddCardToDeck(card, targetDeck)
+      if (error) {
+        if (addedCount === 0) {
+          addToast(error, 'error')
+        } else {
+          addToast(`Added ${addedCount} of ${count} copies. ${error}`, 'warning')
+        }
+        break
+      }
+
+      if (targetDeck === 'main') setMainDeck(prev => [...prev, card])
+      if (targetDeck === 'tape') setTapeDeck(prev => [...prev, card])
+      if (targetDeck === 'side') setSideDeck(prev => [...prev, card])
+      
+      addedCount++
+    }
+
+    if (addedCount > 0) {
+      const deckDisplayName = targetDeck === 'main' ? 'main deck' : targetDeck === 'tape' ? 'tape deck' : 'side deck'
+      const message = addedCount === 1 
+        ? `Added ${card.name} to ${deckDisplayName}`
+        : `Added ${addedCount}x ${card.name} to ${deckDisplayName}`
+      addToast(message, 'success')
+    }
+  }, [canAddCardToDeck, addToast])
+
+  const removeCard = useCallback((card: CardData, deck: 'main' | 'tape' | 'side') => {
+    const update = (arr: CardData[]) => {
+      const index = arr.findIndex(c => c.name === card.name)
+      if (index !== -1) {
+        return arr.filter((_, i) => i !== index)
+      }
+      return arr
+    }
+
+    if (deck === 'main') setMainDeck(update)
+    if (deck === 'tape') setTapeDeck(update)
+    if (deck === 'side') setSideDeck(update)
+  }, [])
+
+  const toggleKeyword = useCallback((keyword: string) => {
+    setFilters(prev => ({
+      ...prev,
+      keywords: prev.keywords.includes(keyword)
+        ? prev.keywords.filter(kw => kw !== keyword)
+        : [...prev.keywords, keyword]
+    }))
+  }, [])
+
+  // Load cards and saved decks on mount
+  useEffect(() => {
+    const loadCards = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/cards.json')
+        if (!response.ok) {
+          throw new Error('Failed to load cards')
+        }
+        const cardsData = await response.json()
+        setCards(cardsData)
+        
+        // Load saved decks from localStorage
+        const decksData = safeLocalStorage.getItem('lolcow_decks')
+        const decks = decksData ? JSON.parse(decksData) : {}
+        setSavedDecks(Object.keys(decks))
+        
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load cards')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadCards()
   }, [])
 
   // Reset preview quantity when card changes
@@ -938,11 +1052,10 @@ export default function DeckbuilderPage() {
 
   // Get unique expansions for filter dropdown
   const expansions = useMemo(() => {
-    const expansionMap = new Map<string, string>() // normalized -> original
+    const expansionMap = new Map<string, string>()
     
     cards.forEach(card => {
       if (card.expansion) {
-        // Light normalization - just trim and normalize spaces
         const cleaned = card.expansion.trim().replace(/\s+/g, ' ')
         const normalized = cleaned.toLowerCase()
         
@@ -958,7 +1071,7 @@ export default function DeckbuilderPage() {
   // Fuzzy search function
   const fuzzySearch = useCallback((query: string, text: string): boolean => {
     if (!query) return true
-    if (!text) return false // Handle undefined/null text
+    if (!text) return false
     const searchTerms = query.toLowerCase().split(' ')
     const searchText = text.toLowerCase()
     return searchTerms.every(term => searchText.includes(term))
@@ -1013,24 +1126,20 @@ export default function DeckbuilderPage() {
     const errors: string[] = []
     const warnings: string[] = []
 
-    // Main deck validation
     if (mainDeck.length < 40) errors.push(`Main deck has ${mainDeck.length} cards (minimum 40 required for tournament play)`)
     if (mainDeck.length > 120) errors.push(`Main deck has ${mainDeck.length} cards (maximum 120)`)
     
-    // Tape deck validation  
     if (tapeDeck.length !== 10) {
       if (tapeDeck.length < 10) errors.push(`Tape deck has ${tapeDeck.length} cards (exactly 10 required for tournament play)`)
       if (tapeDeck.length > 10) errors.push(`Tape deck has ${tapeDeck.length} cards (exactly 10 required for tournament play)`)
     }
 
-    // Check for Scribe/Lolcow conflict
     const hasScribe = mainDeck.some(c => c.type === 'Scribe')
     const hasLolcow = mainDeck.some(c => c.type === 'LolCow')
     if (hasScribe && hasLolcow) {
       errors.push('Scribes and Lolcows cannot be in the same main deck')
     }
 
-    // Tournament legality check
     const isTournamentLegal = mainDeck.length >= 40 && mainDeck.length <= 120 && tapeDeck.length === 10 && errors.length === 0
 
     return { errors, warnings, isValid: errors.length === 0, isTournamentLegal }
@@ -1091,38 +1200,10 @@ export default function DeckbuilderPage() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [hoveredCard, cards])
-
-  // Load cards and saved decks on mount
-  useEffect(() => {
-    const loadCards = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch('/cards.json')
-        if (!response.ok) {
-          throw new Error('Failed to load cards')
-        }
-        const cardsData = await response.json()
-        setCards(cardsData)
-        
-        // Load saved decks
-        const decksData = safeLocalStorage.getItem('lolcow_decks')
-        const decks = decksData ? JSON.parse(decksData) : {}
-        setSavedDecks(Object.keys(decks))
-        
-        setError(null)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load cards')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadCards()
-  }, [])
+  }, [hoveredCard, cards, addCardToDeck])
 
   // Deck management functions
-  const saveDeck = () => {
+  const saveDeck = useCallback(() => {
     if (!deckName.trim()) {
       addToast('Please enter a deck name.', 'error')
       return
@@ -1149,16 +1230,16 @@ export default function DeckbuilderPage() {
     
     if (safeLocalStorage.setItem('lolcow_decks', JSON.stringify(decks))) {
       setSavedDecks(Object.keys(decks))
-      addToast(`Deck &quot;${deckName}&quot; saved successfully!`, 'success')
+      addToast(`Deck "${deckName}" saved successfully!`, 'success')
     } else {
       addToast('Failed to save deck - localStorage not available', 'error')
     }
-  }
+  }, [deckName, deckDescription, mainDeck, tapeDeck, sideDeck, addToast])
 
-  const loadDeck = (deckName: string) => {
+  const loadDeck = useCallback((deckNameToLoad: string) => {
     const existing = safeLocalStorage.getItem('lolcow_decks')
     const decks = existing ? JSON.parse(existing) : {}
-    const deck = decks[deckName]
+    const deck = decks[deckNameToLoad]
     
     if (!deck) {
       addToast('Deck not found.', 'error')
@@ -1168,12 +1249,12 @@ export default function DeckbuilderPage() {
     setMainDeck(deck.main || [])
     setTapeDeck(deck.tape || [])
     setSideDeck(deck.side || [])
-    setDeckName(deck.name || deckName)
+    setDeckName(deck.name || deckNameToLoad)
     setDeckDescription(deck.description || '')
-    addToast(`Deck &quot;${deckName}&quot; loaded successfully!`, 'success')
-  }
+    addToast(`Deck "${deckNameToLoad}" loaded successfully!`, 'success')
+  }, [addToast])
 
-  const deleteDeck = () => {
+  const deleteDeck = useCallback(() => {
     if (!selectedDeckToLoad) return
     
     const existing = safeLocalStorage.getItem('lolcow_decks')
@@ -1185,37 +1266,37 @@ export default function DeckbuilderPage() {
       setSavedDecks(Object.keys(decks))
       const deletedName = selectedDeckToLoad
       setSelectedDeckToLoad('')
-      addToast(`Deck &quot;${deletedName}&quot; deleted successfully.`, 'success')
+      addToast(`Deck "${deletedName}" deleted successfully.`, 'success')
     } else {
       addToast('Failed to delete deck - localStorage not available', 'error')
     }
-  }
+  }, [selectedDeckToLoad, addToast])
 
-  const deleteDeckWithConfirmation = () => {
+  const deleteDeckWithConfirmation = useCallback(() => {
     if (!selectedDeckToLoad) return
     
-    if (!confirm(`Are you sure you want to delete &quot;${selectedDeckToLoad}&quot;?`)) return
+    if (!confirm(`Are you sure you want to delete "${selectedDeckToLoad}"?`)) return
     
     deleteDeck()
-  }
+  }, [selectedDeckToLoad, deleteDeck])
 
-  const clearAllDecks = () => {
+  const clearAllDecks = useCallback(() => {
     if (!confirm('Are you sure you want to clear all decks?')) return
     setMainDeck([])
     setTapeDeck([])
     setSideDeck([])
-  }
+  }, [])
 
-  const exportDeck = () => {
+  const exportDeck = useCallback(() => {
     if (!deckValidation.isTournamentLegal) {
       addToast('Cannot export: Deck is not tournament legal. Please ensure you have at least 40 cards in main deck and exactly 10 cards in tape deck.', 'error')
       return
     }
 
-    const formatDeckSection = (title: string, cards: CardData[]) => {
-      if (cards.length === 0) return ''
+    const formatDeckSection = (title: string, deckCards: CardData[]) => {
+      if (deckCards.length === 0) return ''
       
-      const grouped = cards.reduce((acc, card) => {
+      const grouped = deckCards.reduce((acc, card) => {
         acc[card.name] = (acc[card.name] || 0) + 1
         return acc
       }, {} as Record<string, number>)
@@ -1224,7 +1305,7 @@ export default function DeckbuilderPage() {
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([name, count]) => `${count}x ${name}`)
 
-      return `${title} (${cards.length}):\n${lines.join('\n')}\n\n`
+      return `${title} (${deckCards.length}):\n${lines.join('\n')}\n\n`
     }
 
     const deckText = [
@@ -1245,13 +1326,13 @@ export default function DeckbuilderPage() {
     URL.revokeObjectURL(url)
     
     addToast('Deck exported successfully!', 'success')
-  }
+  }, [deckValidation.isTournamentLegal, deckName, deckDescription, mainDeck, tapeDeck, sideDeck, addToast])
 
-  const generateShareableText = () => {
-    const formatDeckSection = (title: string, cards: CardData[]) => {
-      if (cards.length === 0) return ''
+  const generateShareableText = useCallback(() => {
+    const formatDeckSection = (title: string, deckCards: CardData[]) => {
+      if (deckCards.length === 0) return ''
       
-      const grouped = cards.reduce((acc, card) => {
+      const grouped = deckCards.reduce((acc, card) => {
         acc[card.name] = (acc[card.name] || 0) + 1
         return acc
       }, {} as Record<string, number>)
@@ -1260,7 +1341,7 @@ export default function DeckbuilderPage() {
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([name, count]) => `${count}x ${name}`)
 
-      return `${title} (${cards.length}):\n${lines.join('\n')}\n\n`
+      return `${title} (${deckCards.length}):\n${lines.join('\n')}\n\n`
     }
 
     const deckText = [
@@ -1277,10 +1358,10 @@ export default function DeckbuilderPage() {
     }).catch(() => {
       addToast('Failed to copy to clipboard', 'error')
     })
-  }
+  }, [deckName, deckDescription, mainDeck, tapeDeck, sideDeck, addToast])
 
   // Import functions
-  const parseTextDeckList = (text: string) => {
+  const parseTextDeckList = useCallback((text: string) => {
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0)
     const importedMain: CardData[] = []
     const importedTape: CardData[] = []
@@ -1288,16 +1369,13 @@ export default function DeckbuilderPage() {
     
     let currentSection: 'main' | 'tape' | 'side' | 'none' = 'none'
     let deckNameFromText = ''
-    let deckDescFromText = ''
 
     for (const line of lines) {
-      // Check for deck name
       if (line.startsWith('===') && line.endsWith('===')) {
         deckNameFromText = line.replace(/=/g, '').trim()
         continue
       }
 
-      // Check for section headers
       if (line.toLowerCase().includes('main deck')) {
         currentSection = 'main'
         continue
@@ -1311,18 +1389,15 @@ export default function DeckbuilderPage() {
         continue
       }
 
-      // Skip empty lines and end markers
       if (line.toLowerCase().includes('=== end deck ===') || currentSection === 'none') {
         continue
       }
 
-      // Parse card lines (format: "3x Card Name" or "3 Card Name")
       const cardMatch = line.match(/^(\d+)x?\s+(.+)$/i)
       if (cardMatch) {
         const count = parseInt(cardMatch[1])
         const cardName = cardMatch[2].trim()
         
-        // Find the card in our database
         const foundCard = cards.find(card => 
           card.name.toLowerCase() === cardName.toLowerCase()
         )
@@ -1343,11 +1418,11 @@ export default function DeckbuilderPage() {
       tape: importedTape,
       side: importedSide,
       name: deckNameFromText,
-      description: deckDescFromText
+      description: ''
     }
-  }
+  }, [cards])
 
-  const importFromText = () => {
+  const importFromText = useCallback(() => {
     try {
       const parsed = parseTextDeckList(importText)
       setMainDeck(parsed.main)
@@ -1360,122 +1435,10 @@ export default function DeckbuilderPage() {
     } catch (error) {
       addToast('Error parsing deck list. Please check the format.', 'error')
     }
-  }
+  }, [importText, parseTextDeckList, addToast])
 
-  // Card validation and deck manipulation
-  const canAddCardToDeck = (card: CardData, targetDeck: 'main' | 'tape' | 'side'): string | null => {
-    const allCopies = [...mainDeck, ...sideDeck, ...tapeDeck].filter(c => c.name === card.name)
-    const nameCount = allCopies.length
-    const isBasicTape = card.name?.toLowerCase().includes('basic tape')
-    const isToyTank = card.name?.toLowerCase() === 'toy tank'
-
-    if (card.name?.toLowerCase().includes('cipher tape')) {
-      return 'Cipher Tapes cannot be added to any deck.'
-    }
-
-    if (card.type === 'Token') return 'Tokens cannot be added to any deck.'
-
-    if (targetDeck === 'main') {
-      if (card.type === 'Tape') return 'Tapes cannot go in the main deck.'
-      if (mainDeck.length >= 120) return 'Main deck is full.'
-      if (!isBasicTape && !isToyTank && nameCount >= 3) return 'You can only have 3 total copies of a card between main and side decks.'
-
-      const hasScribe = mainDeck.some(c => c.type === 'Scribe')
-      const hasLolcow = mainDeck.some(c => c.type === 'LolCow')
-      const incoming = card.type
-
-      if ((hasScribe && incoming === 'LolCow') || (hasLolcow && incoming === 'Scribe')) {
-        return 'Scribes and Lolcows cannot be in the same main deck.'
-      }
-
-      return null
-    }
-
-    if (targetDeck === 'tape') {
-      if (card.type !== 'Tape') return 'Only Tapes can go in the tape deck.'
-      if (tapeDeck.length >= 10) return 'Tape deck must be exactly 10 cards.'
-      if (!isBasicTape && card.rarity === 'Special') {
-        // Check both tape deck and side deck for Special Tapes
-        const specialTapeCount = [...tapeDeck, ...sideDeck].filter(c => c.name === card.name).length
-        if (specialTapeCount >= 1) return 'Only 1 copy of a Special Tape allowed between tape and side decks.'
-      }
-      if (!isBasicTape && nameCount >= 3) return 'Max 3 copies total of a tape between decks.'
-      return null
-    }
-
-    if (targetDeck === 'side') {
-      if (sideDeck.length >= 10) return 'Side deck cannot exceed 10 cards.'
-      if (card.type === 'Tape') {
-        // Special validation for Special Tapes in side deck
-        if (!isBasicTape && card.rarity === 'Special') {
-          const specialTapeCount = [...tapeDeck, ...sideDeck].filter(c => c.name === card.name).length
-          if (specialTapeCount >= 1) return 'Only 1 copy of a Special Tape allowed between tape and side decks.'
-        }
-        if (!isBasicTape && nameCount >= 3) return 'Max 3 copies total of a tape between decks.'
-        return null
-      }
-      if (!isBasicTape && !isToyTank && nameCount >= 3) return 'Only 3 total copies allowed between main and side decks.'
-      return null
-    }
-
-    return null
-  }
-
-  const addCardToDeck = (card: CardData, targetDeck: 'main' | 'tape' | 'side', count: number = 1) => {
-    let addedCount = 0
-    
-    for (let i = 0; i < count; i++) {
-      const error = canAddCardToDeck(card, targetDeck)
-      if (error) {
-        if (addedCount === 0) {
-          addToast(error, 'error')
-        } else {
-          addToast(`Added ${addedCount} of ${count} copies. ${error}`, 'warning')
-        }
-        break
-      }
-
-      if (targetDeck === 'main') setMainDeck(prev => [...prev, card])
-      if (targetDeck === 'tape') setTapeDeck(prev => [...prev, card])
-      if (targetDeck === 'side') setSideDeck(prev => [...prev, card])
-      
-      addedCount++
-    }
-
-    if (addedCount > 0) {
-      const deckName = targetDeck === 'main' ? 'main deck' : targetDeck === 'tape' ? 'tape deck' : 'side deck'
-      const message = addedCount === 1 
-        ? `Added ${card.name} to ${deckName}`
-        : `Added ${addedCount}x ${card.name} to ${deckName}`
-      addToast(message, 'success')
-    }
-  }
-
-  const removeCard = (card: CardData, deck: 'main' | 'tape' | 'side') => {
-    const update = (arr: CardData[]) => {
-      const index = arr.findIndex(c => c.name === card.name)
-      if (index !== -1) {
-        return arr.filter((_, i) => i !== index)
-      }
-      return arr
-    }
-
-    if (deck === 'main') setMainDeck(update(mainDeck))
-    if (deck === 'tape') setTapeDeck(update(tapeDeck))
-    if (deck === 'side') setSideDeck(update(sideDeck))
-  }
-
-  const toggleKeyword = (keyword: string) => {
-    setFilters(prev => ({
-      ...prev,
-      keywords: prev.keywords.includes(keyword)
-        ? prev.keywords.filter(kw => kw !== keyword)
-        : [...prev.keywords, keyword]
-    }))
-  }
-
-  const sortedDeckCards = (cards: CardData[]) => {
-    const grouped = cards.reduce((acc, card) => {
+  const sortedDeckCards = useCallback((deckCards: CardData[]) => {
+    const grouped = deckCards.reduce((acc, card) => {
       const key = card.name
       if (acc[key]) {
         acc[key].count++
@@ -1501,10 +1464,10 @@ export default function DeckbuilderPage() {
           return a.localeCompare(b)
       }
     })
-  }
+  }, [deckSort])
 
   // Playtesting functions
-  const drawHand = () => {
+  const drawHand = useCallback(() => {
     const shuffled = [...mainDeck].sort(() => Math.random() - 0.5)
     const openingHand = shuffled.slice(0, 5)
     const remaining = shuffled.slice(5)
@@ -1514,14 +1477,13 @@ export default function DeckbuilderPage() {
     setHasUsedMulligan(false)
     setSelectedMulliganCards([])
     
-    // Auto-open mulligan modal if we have 5 cards
     if (openingHand.length === 5) {
       setShowMulliganModal(true)
     }
-  }
+  }, [mainDeck])
 
-  const drawCard = () => {
-    if (hand.length >= 10) return // Hand size limit
+  const drawCard = useCallback(() => {
+    if (hand.length >= 10) return
     if (deckForDrawing.length === 0) return
     
     const newCard = deckForDrawing[0]
@@ -1529,54 +1491,49 @@ export default function DeckbuilderPage() {
     
     setHand(prev => [...prev, newCard])
     setDeckForDrawing(remainingDeck)
-  }
+  }, [hand.length, deckForDrawing])
 
-  const removeFromHand = (index: number) => {
+  const removeFromHand = useCallback((index: number) => {
     setHand(prev => prev.filter((_, i) => i !== index))
-  }
+  }, [])
 
-  const keepHand = () => {
+  const keepHand = useCallback(() => {
     setShowMulliganModal(false)
     setHasUsedMulligan(true)
-  }
+  }, [])
 
-  const performMulligan = () => {
+  const performMulligan = useCallback(() => {
     if (selectedMulliganCards.length === 0) {
       keepHand()
       return
     }
 
-    // Get the cards to mulligan and the cards to keep
     const cardsToMulligan = selectedMulliganCards.map(index => hand[index])
     const cardsToKeep = hand.filter((_, index) => !selectedMulliganCards.includes(index))
     
-    // Draw new cards from the top of the deck
     const newCards = deckForDrawing.slice(0, selectedMulliganCards.length)
     const remainingDeck = deckForDrawing.slice(selectedMulliganCards.length)
     
-    // Put mulliganed cards at the bottom of the remaining deck
     const newDeckForDrawing = [...remainingDeck, ...cardsToMulligan]
     
-    // Update state
     setHand([...cardsToKeep, ...newCards])
     setDeckForDrawing(newDeckForDrawing)
     setSelectedMulliganCards([])
     setShowMulliganModal(false)
     setHasUsedMulligan(true)
-  }
+  }, [selectedMulliganCards, hand, deckForDrawing, keepHand])
 
-  const toggleMulliganCard = (index: number) => {
+  const toggleMulliganCard = useCallback((index: number) => {
     setSelectedMulliganCards(prev => 
       prev.includes(index) 
         ? prev.filter(i => i !== index)
         : [...prev, index]
     )
-  }
+  }, [])
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white">
-        {/* Header */}
         <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-slate-700 rounded animate-pulse"></div>
@@ -1588,9 +1545,7 @@ export default function DeckbuilderPage() {
           <div className="w-16 h-8 bg-slate-700 rounded animate-pulse"></div>
         </div>
         
-        {/* Main content */}
         <div className="flex">
-          {/* Filter sidebar skeleton */}
           <div className="w-72 bg-slate-900 p-4 border-r border-slate-700 space-y-4">
             {Array.from({ length: 8 }, (_, i) => (
               <div key={i} className="space-y-2">
@@ -1600,7 +1555,6 @@ export default function DeckbuilderPage() {
             ))}
           </div>
           
-          {/* Cards grid skeleton */}
           <div className="flex-1 p-4">
             <div className="mb-4 space-y-3">
               <div className="flex gap-2">
@@ -1613,7 +1567,6 @@ export default function DeckbuilderPage() {
             <LoadingGrid />
           </div>
           
-          {/* Deck list sidebar skeleton */}
           <div className="w-72 bg-slate-900 p-4 border-l border-slate-700 space-y-4">
             {Array.from({ length: 3 }, (_, i) => (
               <div key={i} className="space-y-2">
@@ -2053,14 +2006,13 @@ export default function DeckbuilderPage() {
                   </div>
                 </div>
 
-                {/* Additional insights section */}
                 <div className="mt-6 p-4 bg-slate-800/50 rounded border border-slate-600/30">
                   <h4 className="font-medium mb-3 text-slate-200 text-base">Deck Insights</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-slate-400">Most Common Type:</span>
                       <span className="ml-2 text-white font-medium">
-                        {Object.entries(deckStats.typeBreakdown).reduce((a, b) => a[1] > b[1] ? a : b)[0]}
+                        {Object.entries(deckStats.typeBreakdown).reduce((a, b) => a[1] > b[1] ? a : b, ['None', 0])[0]}
                       </span>
                     </div>
                     <div>
@@ -2126,7 +2078,7 @@ export default function DeckbuilderPage() {
             
             <div className="mb-4 animate-in slide-in-from-top-4 duration-700">
               <p className="text-slate-300 text-center">
-                Choose which cards to mulligan. Selected cards will go to the <span className="text-orange-300 font-medium">bottom of your deck</span> and you&apos;ll draw that many new cards.
+                Choose which cards to mulligan. Selected cards will go to the <span className="text-orange-300 font-medium">bottom of your deck</span> and you will draw that many new cards.
               </p>
               <p className="text-slate-400 text-center text-sm mt-1">
                 You can select 0-5 cards to mulligan.
@@ -2296,7 +2248,6 @@ export default function DeckbuilderPage() {
             </div>
             
             <div className="space-y-4">
-              {/* Text Import */}
               <div className="p-4 bg-slate-800/50 rounded border border-slate-600/30">
                 <h3 className="text-lg font-medium text-slate-200 mb-2">Import from Text File or Paste</h3>
                 <p className="text-sm text-slate-400 mb-3">
@@ -2315,7 +2266,6 @@ export default function DeckbuilderPage() {
                   2x Side Card
                 </div>
                 
-                {/* File Upload */}
                 <div className="mb-4">
                   <label className="block text-sm text-slate-300 mb-2">Upload Text File:</label>
                   <input
@@ -2330,14 +2280,13 @@ export default function DeckbuilderPage() {
                           setImportText(text)
                         }
                         reader.readAsText(file)
-                        e.target.value = '' // Reset input
+                        e.target.value = ''
                       }
                     }}
                     className="w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 file:cursor-pointer cursor-pointer"
                   />
                 </div>
 
-                {/* Text Area */}
                 <div>
                   <label className="block text-sm text-slate-300 mb-2">Or Paste Deck List:</label>
                   <textarea
@@ -2365,13 +2314,12 @@ export default function DeckbuilderPage() {
                 </div>
               </div>
 
-              {/* Import Tips */}
               <div className="p-3 bg-blue-900/20 rounded border border-blue-500/20 text-xs text-blue-200">
                 <strong className="text-blue-300">Import Tips:</strong><br/>
                 <div className="mt-1 space-y-1">
                   <div>• Upload .txt files exported from this deckbuilder</div>
-                  <div>• Text format is flexible - section headers can be &quot;Main Deck&quot;, &quot;Tape Deck&quot;, &quot;Side Deck&quot;</div>
-                  <div>• Card formats: &quot;3x Card Name&quot;, &quot;3 Card Name&quot;, or &quot;Card Name x3&quot;</div>
+                  <div>• Text format is flexible - section headers can be "Main Deck", "Tape Deck", "Side Deck"</div>
+                  <div>• Card formats: "3x Card Name", "3 Card Name", or "Card Name x3"</div>
                   <div>• Card names must match exactly (case-insensitive)</div>
                   <div>• Only tournament legal decks can be exported</div>
                 </div>
@@ -2488,7 +2436,6 @@ export default function DeckbuilderPage() {
               )}
             </div>
             
-            {/* Quantity selector and add buttons */}
             {previewCard.type !== 'Token' && (
               <div className="mt-4 space-y-3">
                 <div className="p-3 bg-slate-800/30 rounded border border-slate-600/30">
