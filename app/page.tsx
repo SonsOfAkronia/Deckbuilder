@@ -176,7 +176,7 @@ function QuantitySelector({
         <button
           onClick={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
-          className="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded text-xs transition-all duration-200 hover:scale-110 disabled:transform-none"
+          className="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded text-xs transition-all duration-200 hover:scale-110"
         >
           <Minus size={12} />
         </button>
@@ -186,7 +186,7 @@ function QuantitySelector({
         <button
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
-          className="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded text-xs transition-all duration-200 hover:scale-110 disabled:transform-none"
+          className="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded text-xs transition-all duration-200 hover:scale-110"
         >
           <Plus size={12} />
         </button>
@@ -306,7 +306,6 @@ function CardGridItem({
         onPreview(card)
       }}
       style={{
-        transform: isDragging ? 'rotate(5deg) scale(0.95)' : '',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
@@ -349,7 +348,7 @@ function CardGridItem({
                     handleAddToDeck('main')
                     setTimeout(() => setButtonPressed(null), 150)
                   }}
-                  className={`bg-green-600 hover:bg-green-500 active:bg-green-700 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 ${
+                  className={`bg-green-600 hover:bg-green-500 active:bg-green-700 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
                     buttonPressed === 'main' ? 'scale-95 bg-green-700' : ''
                   }`}
                   title="Add to Main Deck (M)"
@@ -365,7 +364,7 @@ function CardGridItem({
                     handleAddToDeck('tape')
                     setTimeout(() => setButtonPressed(null), 150)
                   }}
-                  className={`bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 ${
+                  className={`bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
                     buttonPressed === 'tape' ? 'scale-95 bg-emerald-700' : ''
                   }`}
                   title="Add to Tape Deck (T)"
@@ -380,7 +379,7 @@ function CardGridItem({
                   handleAddToDeck('side')
                   setTimeout(() => setButtonPressed(null), 150)
                 }}
-                className={`bg-purple-800 hover:bg-purple-700 active:bg-purple-900 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 ${
+                className={`bg-purple-800 hover:bg-purple-700 active:bg-purple-900 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
                   buttonPressed === 'side' ? 'scale-95 bg-purple-900' : ''
                 }`}
                 title="Add to Side Deck (S)"
@@ -392,7 +391,7 @@ function CardGridItem({
         )}
         
         {/* Drag indicator */}
-        <div className="absolute top-2 right-2 text-white/70 text-xs opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-1 group-hover:translate-x-0 bg-black/50 rounded px-1">
+        <div className="absolute top-2 right-2 text-white/70 text-xs opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0 bg-black/50 rounded px-1">
           <div className="animate-pulse">⋮⋮</div>
         </div>
       </div>
@@ -512,7 +511,7 @@ function DeckList({
     <div className="mb-6 relative">
       <div 
         className={`flex items-center gap-2 mb-3 p-2 rounded-lg text-white transition-all duration-300 ease-out ${getDeckTypeColor()} ${
-          isDragOver ? 'ring-4 ring-white/30 scale-105 shadow-lg transform' : 'hover:scale-[1.02]'
+          isDragOver ? 'ring-4 ring-white/30 scale-105 shadow-lg' : 'hover:scale-[1.02]'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -540,7 +539,7 @@ function DeckList({
         {cards.map(([name, { card, count }], index) => (
           <div
             key={name}
-            className={`flex items-center bg-slate-800 hover:bg-slate-700 transition-all duration-300 border border-slate-600/30 rounded cursor-pointer group transform hover:scale-[1.02] hover:shadow-md ${
+            className={`flex items-center bg-slate-800 hover:bg-slate-700 transition-all duration-300 border border-slate-600/30 rounded cursor-pointer group hover:scale-[1.02] hover:shadow-md ${
               justAdded === name ? 'animate-pulse bg-green-900/50 border-green-400' : ''
             }`}
             style={{
@@ -565,7 +564,7 @@ function DeckList({
             </div>
             
             {/* Card thumbnail */}
-            <div className="flex-shrink-0 w-8 h-8 overflow-hidden transition-transform duration-200 group-hover:scale-110">
+            <div className="flex-shrink-0 w-8 h-8 overflow-hidden transition-all duration-200 group-hover:scale-110">
               {card.imageUrl ? (
                 <img
                   src={card.imageUrl}
@@ -637,7 +636,7 @@ function DeckList({
           <img
             src={hoveredCard.imageUrl}
             alt={hoveredCard.name}
-            className="w-48 h-auto rounded transition-transform duration-200 hover:scale-105"
+            className="w-48 h-auto rounded transition-all duration-200 hover:scale-105"
             onError={(e) => {
               e.currentTarget.style.display = 'none'
             }}
@@ -831,7 +830,7 @@ function FilterPanel({
           <div><span className="text-amber-300">M</span> - Add to Main</div>
           <div><span className="text-emerald-300">T</span> - Add to Tape</div>
           <div><span className="text-yellow-300">S</span> - Add to Side</div>
-          <div><span className="text-cyan-300">Drag & Drop</span> - Drag cards to deck sections</div>
+          <div><span className="text-cyan-300">Drag &amp; Drop</span> - Drag cards to deck sections</div>
         </div>
         <div className="mt-1 text-purple-400 italic">
           (Hover over card first for shortcuts)
@@ -1150,7 +1149,7 @@ export default function DeckbuilderPage() {
     
     if (safeLocalStorage.setItem('lolcow_decks', JSON.stringify(decks))) {
       setSavedDecks(Object.keys(decks))
-      addToast(`Deck "${deckName}" saved successfully!`, 'success')
+      addToast(`Deck &quot;${deckName}&quot; saved successfully!`, 'success')
     } else {
       addToast('Failed to save deck - localStorage not available', 'error')
     }
@@ -1171,7 +1170,7 @@ export default function DeckbuilderPage() {
     setSideDeck(deck.side || [])
     setDeckName(deck.name || deckName)
     setDeckDescription(deck.description || '')
-    addToast(`Deck "${deckName}" loaded successfully!`, 'success')
+    addToast(`Deck &quot;${deckName}&quot; loaded successfully!`, 'success')
   }
 
   const deleteDeck = () => {
@@ -1186,7 +1185,7 @@ export default function DeckbuilderPage() {
       setSavedDecks(Object.keys(decks))
       const deletedName = selectedDeckToLoad
       setSelectedDeckToLoad('')
-      addToast(`Deck "${deletedName}" deleted successfully.`, 'success')
+      addToast(`Deck &quot;${deletedName}&quot; deleted successfully.`, 'success')
     } else {
       addToast('Failed to delete deck - localStorage not available', 'error')
     }
@@ -1195,7 +1194,7 @@ export default function DeckbuilderPage() {
   const deleteDeckWithConfirmation = () => {
     if (!selectedDeckToLoad) return
     
-    if (!confirm(`Are you sure you want to delete "${selectedDeckToLoad}"?`)) return
+    if (!confirm(`Are you sure you want to delete &quot;${selectedDeckToLoad}&quot;?`)) return
     
     deleteDeck()
   }
@@ -1643,7 +1642,7 @@ export default function DeckbuilderPage() {
           <p className="text-red-300 mb-2 animate-in slide-in-from-bottom-2 duration-700">Error: {error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="bg-red-600 hover:bg-red-500 active:bg-red-700 px-4 py-2 rounded font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg transform animate-in slide-in-from-bottom-4 duration-1000"
+            className="bg-red-600 hover:bg-red-500 active:bg-red-700 px-4 py-2 rounded font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg animate-in slide-in-from-bottom-4"
           >
             Retry Loading
           </button>
@@ -1712,27 +1711,27 @@ export default function DeckbuilderPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={saveDeck}
-                className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg transform"
+                className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
               >
                 Save
               </button>
               <button
                 onClick={() => selectedDeckToLoad && loadDeck(selectedDeckToLoad)}
                 disabled={!selectedDeckToLoad}
-                className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:bg-slate-600 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 disabled:transform-none hover:shadow-lg transform"
+                className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:bg-slate-600 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 hover:shadow-lg"
               >
                 Load
               </button>
               <button
                 onClick={deleteDeckWithConfirmation}
                 disabled={!selectedDeckToLoad}
-                className="bg-red-600 hover:bg-red-500 active:bg-red-700 disabled:bg-slate-600 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 disabled:transform-none hover:shadow-lg transform"
+                className="bg-red-600 hover:bg-red-500 active:bg-red-700 disabled:bg-slate-600 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 hover:shadow-lg"
               >
                 Delete
               </button>
               <button
                 onClick={clearAllDecks}
-                className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg transform"
+                className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
               >
                 Clear All
               </button>
@@ -1743,38 +1742,38 @@ export default function DeckbuilderPage() {
               <button
                 onClick={exportDeck}
                 disabled={!deckValidation.isTournamentLegal}
-                className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 disabled:bg-slate-600 disabled:opacity-50 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 disabled:transform-none hover:shadow-lg transform"
+                className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 disabled:bg-slate-600 disabled:opacity-50 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
                 title={!deckValidation.isTournamentLegal ? 'Deck must be tournament legal to export' : 'Export tournament legal deck as text file'}
               >
-                <Download size={14} className="transition-transform duration-200 group-hover:translate-y-0.5" />
+                <Download size={14} className="transition-all duration-200 group-hover:translate-y-0.5" />
                 Export {!deckValidation.isTournamentLegal && '🔒'}
               </button>
               <button
                 onClick={() => setShowImportModal(true)}
-                className="bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg transform group"
+                className="bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg group"
               >
-                <Search size={14} className="transition-transform duration-200 group-hover:rotate-12" />
+                <Search size={14} className="transition-all duration-200 group-hover:rotate-12" />
                 Import
               </button>
               <button
                 onClick={generateShareableText}
-                className="bg-teal-600 hover:bg-teal-500 active:bg-teal-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg transform group"
+                className="bg-teal-600 hover:bg-teal-500 active:bg-teal-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg group"
               >
-                <Copy size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                <Copy size={14} className="transition-all duration-200 group-hover:translate-x-0.5" />
                 Copy
               </button>
               <button
                 onClick={() => setShowStatsModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg transform group"
+                className="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg group"
               >
-                <BarChart3 size={14} className="transition-transform duration-200 group-hover:scale-110" />
+                <BarChart3 size={14} className="transition-all duration-200 group-hover:scale-110" />
                 Stats
               </button>
               <button
                 onClick={() => setShowPlaytest(!showPlaytest)}
-                className="bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg transform group"
+                className="bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg group"
               >
-                <Shuffle size={14} className="transition-transform duration-200 group-hover:rotate-180" />
+                <Shuffle size={14} className="transition-all duration-200 group-hover:rotate-180" />
                 Test Draw
               </button>
             </div>
@@ -1821,22 +1820,22 @@ export default function DeckbuilderPage() {
 
         {/* Playtesting panel */}
         {showPlaytest && (
-          <div className="mb-3 p-3 bg-slate-800 rounded border border-slate-600 animate-in slide-in-from-top-4 fade-in-0 duration-300">
+          <div className="mb-3 p-3 bg-slate-800 rounded border border-slate-600 animate-in slide-in-from-top-4 fade-in-0 duration-200">
             <h3 className="text-base font-bold mb-2 text-amber-300">Playtesting Suite</h3>
             <div className="flex gap-2 mb-2">
               <button
                 onClick={drawHand}
-                className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg transform group"
+                className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg group"
                 disabled={mainDeck.length === 0}
               >
                 <span className="flex items-center gap-1">
                   New Game 
-                  <span className="transition-transform duration-200 group-hover:rotate-12">(Draw 5)</span>
+                  <span className="transition-all duration-200 group-hover:rotate-12">(Draw 5)</span>
                 </span>
               </button>
               <button
                 onClick={drawCard}
-                className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg transform disabled:transform-none disabled:bg-slate-600 disabled:opacity-50"
+                className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg disabled:bg-slate-600 disabled:opacity-50"
                 disabled={mainDeck.length === 0 || deckForDrawing.length === 0}
               >
                 Draw Card
@@ -1848,14 +1847,14 @@ export default function DeckbuilderPage() {
                   setHasUsedMulligan(false)
                   setSelectedMulliganCards([])
                 }}
-                className="bg-red-600 hover:bg-red-500 active:bg-red-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg transform group"
+                className="bg-red-600 hover:bg-red-500 active:bg-red-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg group"
               >
-                <span className="transition-transform duration-200 group-hover:rotate-180">Reset</span>
+                <span className="transition-all duration-200 group-hover:rotate-180">Reset</span>
               </button>
               {hand.length > 0 && (
                 <button
                   onClick={() => setShowHandModal(true)}
-                  className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg transform animate-in slide-in-from-right-4 duration-300"
+                  className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg animate-in slide-in-from-right-4 duration-300"
                 >
                   View Hand ({hand.length})
                 </button>
@@ -1863,7 +1862,7 @@ export default function DeckbuilderPage() {
               {hand.length === 5 && !hasUsedMulligan && (
                 <button
                   onClick={() => setShowMulliganModal(true)}
-                  className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg transform animate-in slide-in-from-right-4 duration-300 animate-pulse"
+                  className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg animate-in slide-in-from-right-4 duration-300 animate-pulse"
                 >
                   Mulligan
                 </button>
@@ -2127,7 +2126,7 @@ export default function DeckbuilderPage() {
             
             <div className="mb-4 animate-in slide-in-from-top-4 duration-700">
               <p className="text-slate-300 text-center">
-                Choose which cards to mulligan. Selected cards will go to the <span className="text-orange-300 font-medium">bottom of your deck</span> and you'll draw that many new cards.
+                Choose which cards to mulligan. Selected cards will go to the <span className="text-orange-300 font-medium">bottom of your deck</span> and you&apos;ll draw that many new cards.
               </p>
               <p className="text-slate-400 text-center text-sm mt-1">
                 You can select 0-5 cards to mulligan.
@@ -2172,14 +2171,14 @@ export default function DeckbuilderPage() {
               <div className="flex gap-2">
                 <button
                   onClick={keepHand}
-                  className="bg-green-600 hover:bg-green-500 active:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg transform"
+                  className="bg-green-600 hover:bg-green-500 active:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
                 >
                   Keep Hand
                 </button>
                 <button
                   onClick={performMulligan}
                   disabled={selectedMulliganCards.length === 0}
-                  className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:bg-slate-600 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 disabled:transform-none hover:shadow-lg transform"
+                  className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:bg-slate-600 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 hover:shadow-lg"
                 >
                   {selectedMulliganCards.length === 0 ? 'Select Cards' : `Mulligan ${selectedMulliganCards.length}`}
                 </button>
@@ -2371,8 +2370,8 @@ export default function DeckbuilderPage() {
                 <strong className="text-blue-300">Import Tips:</strong><br/>
                 <div className="mt-1 space-y-1">
                   <div>• Upload .txt files exported from this deckbuilder</div>
-                  <div>• Text format is flexible - section headers can be "Main Deck", "Tape Deck", "Side Deck"</div>
-                  <div>• Card formats: "3x Card Name", "3 Card Name", or "Card Name x3"</div>
+                  <div>• Text format is flexible - section headers can be &quot;Main Deck&quot;, &quot;Tape Deck&quot;, &quot;Side Deck&quot;</div>
+                  <div>• Card formats: &quot;3x Card Name&quot;, &quot;3 Card Name&quot;, or &quot;Card Name x3&quot;</div>
                   <div>• Card names must match exactly (case-insensitive)</div>
                   <div>• Only tournament legal decks can be exported</div>
                 </div>
@@ -2456,7 +2455,7 @@ export default function DeckbuilderPage() {
               )}
               {previewCard.flavor_text && (
                 <div className="p-2 bg-slate-800/50 rounded border border-slate-600/30">
-                  <span className="text-slate-300 italic leading-relaxed">"{previewCard.flavor_text}"</span>
+                  <span className="text-slate-300 italic leading-relaxed">&quot;{previewCard.flavor_text}&quot;</span>
                 </div>
               )}
               {(previewCard.artist || previewCard.expansion || previewCard.rarity || previewCard.id) && (
@@ -2508,7 +2507,7 @@ export default function DeckbuilderPage() {
                         addCardToDeck(previewCard, 'main', previewQuantity)
                         setPreviewCard(null)
                       }}
-                      className="bg-green-600 hover:bg-green-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg transform"
+                      className="bg-green-600 hover:bg-green-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
                     >
                       Add {previewQuantity}x to Main
                     </button>
@@ -2520,7 +2519,7 @@ export default function DeckbuilderPage() {
                         addCardToDeck(previewCard, 'tape', previewQuantity)
                         setPreviewCard(null)
                       }}
-                      className="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg transform"
+                      className="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
                     >
                       Add {previewQuantity}x to Tape
                     </button>
@@ -2531,7 +2530,7 @@ export default function DeckbuilderPage() {
                       addCardToDeck(previewCard, 'side', previewQuantity)
                       setPreviewCard(null)
                     }}
-                    className="bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg transform"
+                    className="bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
                   >
                     Add {previewQuantity}x to Side
                   </button>
