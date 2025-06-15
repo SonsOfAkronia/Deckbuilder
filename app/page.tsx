@@ -7,7 +7,6 @@ import type React from "react"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import {
   Search,
-  Menu,
   X,
   BarChart3,
   Download,
@@ -19,8 +18,13 @@ import {
   Loader2,
   Plus,
   Minus,
+  ChevronDown,
+  ChevronUp,
+  Filter,
+  Eye,
+  Settings,
 } from "lucide-react"
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts"
 import Image from "next/image"
 
 const ALL_KEYWORDS = ["DASH", "LEAP", "STALKER", "RECLUSE", "CHEAPSHOT", "REACH", "OVERRUN", "IMMORTAL", "ATTACH"]
@@ -218,15 +222,17 @@ function QuantitySelector({
         <button
           onClick={() => onChange(Math.max(min, value - 1))}
           disabled={value <= min}
-          className="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded text-xs transition-all duration-200 hover:scale-110"
+          className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded text-xs transition-all duration-200 hover:scale-110 active:scale-95"
         >
           <Minus size={12} />
         </button>
-        <span className="w-8 text-center text-sm font-bold text-white bg-slate-700 py-1 rounded">{value}</span>
+        <span className="w-8 md:w-10 text-center text-sm font-bold text-white bg-slate-700 py-1 md:py-2 rounded">
+          {value}
+        </span>
         <button
           onClick={() => onChange(Math.min(max, value + 1))}
           disabled={value >= max}
-          className="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded text-xs transition-all duration-200 hover:scale-110"
+          className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:opacity-50 text-white rounded text-xs transition-all duration-200 hover:scale-110 active:scale-95"
         >
           <Plus size={12} />
         </button>
@@ -341,10 +347,9 @@ function CardGridItem({
       onDragEnd={handleDragEnd}
       onMouseEnter={() => onHover(card.name)}
       onMouseLeave={() => onHover(null)}
-      onContextMenu={(e) => {
-        e.preventDefault()
-        onPreview(card)
-      }}
+      onTouchStart={() => onHover(card.name)}
+      onTouchEnd={() => onHover(null)}
+      onClick={() => onPreview(card)}
       style={{
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
@@ -378,10 +383,10 @@ function CardGridItem({
           </div>
         )}
 
-        {/* Action buttons overlay - only on the image area */}
+        {/* Action buttons overlay - responsive behavior */}
         {card.type !== "Token" && (
-          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center rounded-t-lg">
-            <div className="flex flex-col gap-1">
+          <div className="absolute inset-0 bg-black/60 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 flex items-center justify-center rounded-t-lg">
+            <div className="flex flex-col md:flex-col gap-1">
               {card.type !== "Tape" && (
                 <button
                   onClick={(e) => {
@@ -390,7 +395,7 @@ function CardGridItem({
                     handleAddToDeck("main")
                     setTimeout(() => setButtonPressed(null), 150)
                   }}
-                  className={`bg-green-600 hover:bg-green-500 active:bg-green-700 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+                  className={`bg-green-600 hover:bg-green-500 active:bg-green-700 text-white rounded px-2 md:px-3 py-1 md:py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
                     buttonPressed === "main" ? "scale-95 bg-green-700" : ""
                   }`}
                   title="Add to Main Deck (M)"
@@ -406,7 +411,7 @@ function CardGridItem({
                     handleAddToDeck("tape")
                     setTimeout(() => setButtonPressed(null), 150)
                   }}
-                  className={`bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+                  className={`bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded px-2 md:px-3 py-1 md:py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
                     buttonPressed === "tape" ? "scale-95 bg-emerald-700" : ""
                   }`}
                   title="Add to Tape Deck (T)"
@@ -421,19 +426,30 @@ function CardGridItem({
                   handleAddToDeck("side")
                   setTimeout(() => setButtonPressed(null), 150)
                 }}
-                className={`bg-purple-800 hover:bg-purple-700 active:bg-purple-900 text-white rounded px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
+                className={`bg-purple-800 hover:bg-purple-700 active:bg-purple-900 text-white rounded px-2 md:px-3 py-1 md:py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${
                   buttonPressed === "side" ? "scale-95 bg-purple-900" : ""
                 }`}
                 title="Add to Side Deck (S)"
               >
                 Side
               </button>
+              {/* Mobile-only view button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onPreview(card)
+                }}
+                className="md:hidden bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white rounded px-2 py-1 text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+                title="View Details"
+              >
+                <Eye size={12} />
+              </button>
             </div>
           </div>
         )}
 
-        {/* Drag indicator */}
-        <div className="absolute top-2 right-2 text-white/70 text-xs opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0 bg-black/50 rounded px-1">
+        {/* Drag indicator - desktop only */}
+        <div className="hidden md:block absolute top-2 right-2 text-white/70 text-xs opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0 bg-black/50 rounded px-1">
           <div className="animate-pulse">⋮⋮</div>
         </div>
       </div>
@@ -485,6 +501,8 @@ function DeckList({
   validation,
   deckType,
   onAddToDeck,
+  isCollapsed,
+  onToggleCollapse,
 }: {
   title: string
   cards: [string, { card: CardData; count: number }][]
@@ -493,6 +511,8 @@ function DeckList({
   validation: { errors: string[]; warnings: string[]; isValid: boolean }
   deckType: "main" | "tape" | "side"
   onAddToDeck: (card: CardData, deck: "main" | "tape" | "side") => void
+  isCollapsed?: boolean
+  onToggleCollapse?: () => void
 }) {
   const [hoveredCard, setHoveredCard] = useState<CardData | null>(null)
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
@@ -552,97 +572,105 @@ function DeckList({
   }
 
   return (
-    <div className="mb-6 relative">
+    <div className="mb-4 md:mb-6 relative">
       <div
-        className={`flex items-center gap-2 mb-3 p-2 rounded-lg text-white transition-all duration-300 ease-out ${getDeckTypeColor()} ${
+        className={`flex items-center gap-2 mb-2 md:mb-3 p-2 md:p-3 rounded-lg text-white transition-all duration-300 ease-out ${getDeckTypeColor()} ${
           isDragOver ? "ring-4 ring-white/30 scale-105 shadow-lg" : "hover:scale-[1.02]"
-        }`}
+        } ${onToggleCollapse ? "cursor-pointer" : ""}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onClick={onToggleCollapse}
       >
-        <h2 className="font-semibold text-sm transition-all duration-200">
+        <h2 className="font-semibold text-sm transition-all duration-200 flex-1">
           {title} ({totalCards})
         </h2>
         <div className="transition-all duration-200">{getValidationIcon()}</div>
+        {onToggleCollapse && (
+          <div className="md:hidden transition-all duration-200">
+            {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+          </div>
+        )}
         {isDragOver && (
           <div className="ml-auto text-xs bg-white/20 px-2 py-1 rounded animate-pulse backdrop-blur-sm">Drop here!</div>
         )}
       </div>
 
-      <div
-        className={`space-y-1 transition-all duration-300 ${
-          isDragOver ? "bg-slate-700/30 rounded-lg p-2 border-2 border-dashed border-slate-400 scale-[1.02]" : ""
-        }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        {cards.map(([name, { card, count }], index) => (
-          <div
-            key={name}
-            className={`flex items-center bg-slate-800 hover:bg-slate-700 transition-all duration-300 border border-slate-600/30 rounded cursor-pointer group hover:scale-[1.02] hover:shadow-md ${
-              justAdded === name ? "animate-pulse bg-green-900/50 border-green-400" : ""
-            }`}
-            style={{
-              animationDelay: `${index * 50}ms`,
-              animation: justAdded === name ? "slideInFromRight 0.5s ease-out" : "",
-            }}
-            onMouseEnter={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect()
-              setHoverPos({ x: rect.right, y: rect.top + window.scrollY })
-              setHoveredCard(card)
-            }}
-            onMouseLeave={() => setHoveredCard(null)}
-            onClick={() => onRemove(card)}
-            onContextMenu={(e) => {
-              e.preventDefault()
-              onPreview(card)
-            }}
-          >
-            {/* Quantity indicator */}
-            <div className="shrink-0 w-6 h-8 bg-slate-700 flex items-center justify-center text-xs font-bold text-white rounded-l border-r border-slate-600 transition-all duration-200 group-hover:bg-slate-600">
-              {count}
-            </div>
+      {(!isCollapsed || !onToggleCollapse) && (
+        <div
+          className={`space-y-1 transition-all duration-300 ${
+            isDragOver ? "bg-slate-700/30 rounded-lg p-2 border-2 border-dashed border-slate-400 scale-[1.02]" : ""
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {cards.map(([name, { card, count }], index) => (
+            <div
+              key={name}
+              className={`flex items-center bg-slate-800 hover:bg-slate-700 transition-all duration-300 border border-slate-600/30 rounded cursor-pointer group hover:scale-[1.02] hover:shadow-md ${
+                justAdded === name ? "animate-pulse bg-green-900/50 border-green-400" : ""
+              }`}
+              style={{
+                animationDelay: `${index * 50}ms`,
+                animation: justAdded === name ? "slideInFromRight 0.5s ease-out" : "",
+              }}
+              onMouseEnter={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect()
+                setHoverPos({ x: rect.right, y: rect.top + window.scrollY })
+                setHoveredCard(card)
+              }}
+              onMouseLeave={() => setHoveredCard(null)}
+              onClick={() => onRemove(card)}
+              onContextMenu={(e) => {
+                e.preventDefault()
+                onPreview(card)
+              }}
+            >
+              {/* Quantity indicator */}
+              <div className="shrink-0 w-6 md:w-8 h-8 md:h-10 bg-slate-700 flex items-center justify-center text-xs font-bold text-white rounded-l border-r border-slate-600 transition-all duration-200 group-hover:bg-slate-600">
+                {count}
+              </div>
 
-            {/* Card thumbnail */}
-            <div className="shrink-0 w-8 h-8 overflow-hidden transition-all duration-200 group-hover:scale-110">
-              {card.imageUrl ? (
-                <Image
-                  src={card.imageUrl || "/placeholder.svg"}
-                  alt={card.name}
-                  width={32}
-                  height={32}
-                  className="size-full object-cover transition-all duration-300 group-hover:brightness-110"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none"
-                  }}
-                />
-              ) : (
-                <div className="size-full bg-slate-700 flex items-center justify-center transition-colors duration-200 group-hover:bg-slate-600">
-                  <span className="text-xs text-slate-400">?</span>
+              {/* Card thumbnail */}
+              <div className="shrink-0 w-8 md:w-10 h-8 md:h-10 overflow-hidden transition-all duration-200 group-hover:scale-110">
+                {card.imageUrl ? (
+                  <Image
+                    src={card.imageUrl || "/placeholder.svg"}
+                    alt={card.name}
+                    width={40}
+                    height={40}
+                    className="size-full object-cover transition-all duration-300 group-hover:brightness-110"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none"
+                    }}
+                  />
+                ) : (
+                  <div className="size-full bg-slate-700 flex items-center justify-center transition-colors duration-200 group-hover:bg-slate-600">
+                    <span className="text-xs text-slate-400">?</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Card name */}
+              <div className="grow min-w-0 px-2 py-1">
+                <div className="text-xs font-medium text-white truncate transition-all duration-200 group-hover:text-slate-200">
+                  {name}
+                </div>
+              </div>
+
+              {/* Tape cost */}
+              {card.tape_cost !== undefined && (
+                <div className="shrink-0 w-6 md:w-8 h-8 md:h-10 bg-purple-800 flex items-center justify-center text-xs font-bold text-white rounded-r border-l border-slate-600 transition-all duration-200 group-hover:bg-purple-700">
+                  {card.tape_cost}
                 </div>
               )}
             </div>
+          ))}
+        </div>
+      )}
 
-            {/* Card name */}
-            <div className="grow min-w-0 px-2 py-1">
-              <div className="text-xs font-medium text-white truncate transition-all duration-200 group-hover:text-slate-200">
-                {name}
-              </div>
-            </div>
-
-            {/* Tape cost */}
-            {card.tape_cost !== undefined && (
-              <div className="shrink-0 w-6 h-8 bg-purple-800 flex items-center justify-center text-xs font-bold text-white rounded-r border-l border-slate-600 transition-all duration-200 group-hover:bg-purple-700">
-                {card.tape_cost}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {cards.length === 0 && (
+      {(!isCollapsed || !onToggleCollapse) && cards.length === 0 && (
         <div
           className={`text-slate-400 text-xs italic p-4 text-center bg-slate-800/30 rounded border border-slate-600/20 transition-all duration-300 ${
             isDragOver ? "border-slate-400 bg-slate-700/30 scale-105 text-slate-300" : "hover:bg-slate-800/50"
@@ -663,10 +691,10 @@ function DeckList({
         </div>
       )}
 
-      {/* Tooltip Preview with animation */}
+      {/* Tooltip Preview with animation - desktop only */}
       {hoveredCard?.imageUrl && (
         <div
-          className="absolute z-40 pointer-events-none animate-in fade-in-0 zoom-in-95 duration-200"
+          className="absolute z-40 pointer-events-none animate-in fade-in-0 zoom-in-95 duration-200 hidden md:block"
           style={{
             top: hoverPos.y + 10,
             left: hoverPos.x + 10,
@@ -850,26 +878,28 @@ function FilterPanel({
         <strong className="text-purple-300">Controls:</strong>
         <br />
         <div className="mt-1 space-y-0.5">
-          <div>
+          <div className="md:block hidden">
             <span className="text-amber-300">M</span> - Add to Main
           </div>
-          <div>
+          <div className="md:block hidden">
             <span className="text-emerald-300">T</span> - Add to Tape
           </div>
-          <div>
+          <div className="md:block hidden">
             <span className="text-yellow-300">S</span> - Add to Side
           </div>
-          <div>
+          <div className="md:block hidden">
             <span className="text-cyan-300">Drag & Drop</span> - Drag cards to deck sections
           </div>
+          <div className="md:hidden">• Tap card to view details</div>
+          <div className="md:hidden">• Use buttons on cards to add to decks</div>
         </div>
-        <div className="mt-1 text-purple-400 italic">(Hover over card first for shortcuts)</div>
+        <div className="mt-1 text-purple-400 italic hidden md:block">(Hover over card first for shortcuts)</div>
       </div>
     </>
   )
 }
 
-export default function DeckbuilderPage() {
+export default function ResponsiveDeckbuilderPage() {
   // All state declarations first
   const [cards, setCards] = useState<CardData[]>([])
   const [loading, setLoading] = useState(true)
@@ -907,6 +937,15 @@ export default function DeckbuilderPage() {
   const [selectedMulliganCards, setSelectedMulliganCards] = useState<number[]>([])
   const [deckForDrawing, setDeckForDrawing] = useState<CardData[]>([])
   const [hasUsedMulligan, setHasUsedMulligan] = useState(false)
+  const [showDeckManagement, setShowDeckManagement] = useState(false)
+  const [collapsedDecks, setCollapsedDecks] = useState<Record<string, boolean>>({
+    main: false,
+    tape: false,
+    side: false,
+  })
+
+  // Rest of the component logic remains the same...
+  // [Include all the existing functions and effects from the original component]
 
   // Toast utility functions
   const addToast = useCallback((message: string, type: Toast["type"] = "info", duration?: number) => {
@@ -1221,10 +1260,11 @@ export default function DeckbuilderPage() {
     }
   }, [mainDeck, sideDeck])
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts - desktop only
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) return
+      if (window.innerWidth < 768) return // Skip on mobile
 
       if (hoveredCard) {
         const card = cards.find((c) => c.name === hoveredCard)
@@ -1618,40 +1658,8 @@ export default function DeckbuilderPage() {
           <div className="w-16 h-8 bg-slate-700 rounded animate-pulse"></div>
         </div>
 
-        <div className="flex">
-          <div className="w-72 bg-slate-900 p-4 border-r border-slate-700 space-y-4">
-            {Array.from({ length: 8 }, (_, i) => (
-              <div key={i} className="space-y-2">
-                <div className="w-20 h-3 bg-slate-700 rounded animate-pulse"></div>
-                <div className="w-full h-8 bg-slate-700 rounded animate-pulse"></div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex-1 p-4">
-            <div className="mb-4 space-y-3">
-              <div className="flex gap-2">
-                {Array.from({ length: 6 }, (_, i) => (
-                  <div key={i} className="w-20 h-8 bg-slate-700 rounded animate-pulse"></div>
-                ))}
-              </div>
-              <div className="w-full h-12 bg-slate-700 rounded animate-pulse"></div>
-            </div>
-            <LoadingGrid />
-          </div>
-
-          <div className="w-72 bg-slate-900 p-4 border-l border-slate-700 space-y-4">
-            {Array.from({ length: 3 }, (_, i) => (
-              <div key={i} className="space-y-2">
-                <div className="w-24 h-4 bg-slate-700 rounded animate-pulse"></div>
-                <div className="space-y-1">
-                  {Array.from({ length: 4 }, (_, j) => (
-                    <div key={j} className="w-full h-6 bg-slate-700 rounded animate-pulse"></div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="p-4">
+          <LoadingGrid />
         </div>
       </div>
     )
@@ -1659,8 +1667,8 @@ export default function DeckbuilderPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-950 text-white">
-        <div className="text-center p-6 bg-slate-800 rounded-lg border border-red-500/30 animate-in zoom-in-95 slide-in-from-bottom-4 duration-500">
+      <div className="flex items-center justify-center min-h-screen bg-slate-950 text-white p-4">
+        <div className="text-center p-6 bg-slate-800 rounded-lg border border-red-500/30 animate-in zoom-in-95 slide-in-from-bottom-4 duration-500 max-w-md">
           <div className="relative size-16 mx-auto mb-4">
             <XCircle className="size-16 text-red-400 animate-pulse" />
             <div className="absolute inset-0 border-2 border-red-400 rounded-full animate-ping opacity-20"></div>
@@ -1678,143 +1686,43 @@ export default function DeckbuilderPage() {
   }
 
   return (
-    <main className="flex flex-col lg:flex-row h-screen bg-slate-950 text-white overflow-hidden">
-      {/* Mobile filter toggle */}
-      <div className="lg:hidden flex items-center justify-between p-3 bg-slate-900 border-b border-slate-700">
-        <h1 className="text-lg font-bold text-amber-300">LolCow TCG</h1>
-        <button
-          onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-          className="p-2 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 transition-all duration-200"
-        >
-          {mobileFiltersOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
+    <main className="flex flex-col h-screen bg-slate-950 text-white overflow-hidden">
+      {/* Mobile header */}
+      <div className="flex items-center justify-between p-3 bg-slate-900 border-b border-slate-700 shrink-0">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="p-2 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 transition-all duration-200 md:hidden"
+          >
+            <Filter size={18} />
+          </button>
+          <h1 className="text-lg font-bold text-amber-300">LolCow TCG</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowDeckManagement(!showDeckManagement)}
+            className="p-2 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 transition-all duration-200"
+          >
+            <Settings size={18} />
+          </button>
+        </div>
       </div>
 
-      {/* Filter panel */}
-      <aside
-        className={`
-        ${mobileFiltersOpen ? "block" : "hidden"} lg:block
-        w-full lg:w-72 bg-slate-900 p-4 border-r border-slate-700 
-        overflow-y-auto h-full lg:sticky lg:top-0
-        ${mobileFiltersOpen ? "absolute z-20" : ""}
-      `}
-      >
-        <div className="hidden lg:block mb-4">
-          <h1 className="text-xl font-bold mb-1 text-amber-300">LolCow TCG</h1>
-          <p className="text-violet-300 text-sm">Deckbuilder</p>
-        </div>
-
-        <FilterPanel
-          filters={filters}
-          setFilters={setFilters}
-          toggleKeyword={toggleKeyword}
-          cards={cards}
-          expansions={expansions}
-        />
-      </aside>
-
-      {/* Main content */}
-      <section className="flex-1 overflow-y-auto p-4 bg-slate-950">
-        <div className="mb-4">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
-            {/* Deck management */}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="text"
-                placeholder="Deck name"
-                value={deckName}
-                onChange={(e) => setDeckName(e.target.value)}
-                className="bg-slate-800 text-white p-2 rounded border border-slate-600 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition-all duration-200 w-full sm:w-40 text-sm"
-              />
-              <input
-                type="text"
-                placeholder="Description"
-                value={deckDescription}
-                onChange={(e) => setDeckDescription(e.target.value)}
-                className="bg-slate-800 text-white p-2 rounded border border-slate-600 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition-all duration-200 w-full sm:w-40 text-sm"
-              />
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={saveDeck}
-                className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
-              >
-                Save
-              </button>
-              <button
-                onClick={() => selectedDeckToLoad && loadDeck(selectedDeckToLoad)}
-                disabled={!selectedDeckToLoad}
-                className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:bg-slate-600 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 hover:shadow-lg"
-              >
-                Load
-              </button>
-              <button
-                onClick={deleteDeckWithConfirmation}
-                disabled={!selectedDeckToLoad}
-                className="bg-red-600 hover:bg-red-500 active:bg-red-700 disabled:bg-slate-600 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 hover:shadow-lg"
-              >
-                Delete
-              </button>
-              <button
-                onClick={clearAllDecks}
-                className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
-              >
-                Clear All
-              </button>
-            </div>
-
-            {/* Utility buttons */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={exportDeck}
-                disabled={!deckValidation.isTournamentLegal}
-                className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 disabled:bg-slate-600 disabled:opacity-50 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
-                title={
-                  !deckValidation.isTournamentLegal
-                    ? "Deck must be tournament legal to export"
-                    : "Export tournament legal deck as text file"
-                }
-              >
-                <Download size={14} className="transition-all duration-200 group-hover:translate-y-0.5" />
-                Export {!deckValidation.isTournamentLegal && "🔒"}
-              </button>
-              <button
-                onClick={() => setShowImportModal(true)}
-                className="bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg group"
-              >
-                <Search size={14} className="transition-all duration-200 group-hover:rotate-12" />
-                Import
-              </button>
-              <button
-                onClick={generateShareableText}
-                className="bg-teal-600 hover:bg-teal-500 active:bg-teal-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg group"
-              >
-                <Copy size={14} className="transition-all duration-200 group-hover:translate-x-0.5" />
-                Copy
-              </button>
-              <button
-                onClick={() => setShowStatsModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg group"
-              >
-                <BarChart3 size={14} className="transition-all duration-200 group-hover:scale-110" />
-                Stats
-              </button>
-              <button
-                onClick={() => setShowPlaytest(!showPlaytest)}
-                className="bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg group"
-              >
-                <Shuffle size={14} className="transition-all duration-200 group-hover:rotate-180" />
-                Test Draw
-              </button>
-            </div>
-
-            {/* Deck selector */}
+      {/* Mobile deck management panel */}
+      {showDeckManagement && (
+        <div className="bg-slate-800 p-3 border-b border-slate-700 space-y-3 shrink-0">
+          <div className="flex flex-col gap-2">
+            <input
+              type="text"
+              placeholder="Deck name"
+              value={deckName}
+              onChange={(e) => setDeckName(e.target.value)}
+              className="bg-slate-700 text-white p-2 rounded border border-slate-600 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition-all duration-200 text-sm"
+            />
             <select
               value={selectedDeckToLoad}
               onChange={(e) => setSelectedDeckToLoad(e.target.value)}
-              className="bg-slate-800 text-white p-2 rounded border border-slate-600 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition-all duration-200 w-full sm:w-48 text-sm"
+              className="bg-slate-700 text-white p-2 rounded border border-slate-600 focus:border-amber-400 focus:ring-1 focus:ring-amber-400/20 transition-all duration-200 text-sm"
             >
               <option value="">Select deck to load</option>
               {savedDecks.map((name) => (
@@ -1825,16 +1733,84 @@ export default function DeckbuilderPage() {
             </select>
           </div>
 
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={saveDeck}
+              className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => selectedDeckToLoad && loadDeck(selectedDeckToLoad)}
+              disabled={!selectedDeckToLoad}
+              className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:bg-slate-600 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
+            >
+              Load
+            </button>
+            <button
+              onClick={deleteDeckWithConfirmation}
+              disabled={!selectedDeckToLoad}
+              className="bg-red-600 hover:bg-red-500 active:bg-red-700 disabled:bg-slate-600 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
+            >
+              Delete
+            </button>
+            <button
+              onClick={clearAllDecks}
+              className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+            >
+              Clear
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={exportDeck}
+              disabled={!deckValidation.isTournamentLegal}
+              className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 disabled:bg-slate-600 disabled:opacity-50 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95"
+            >
+              <Download size={14} />
+              Export
+            </button>
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="bg-cyan-600 hover:bg-cyan-500 active:bg-cyan-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95"
+            >
+              <Search size={14} />
+              Import
+            </button>
+            <button
+              onClick={generateShareableText}
+              className="bg-teal-600 hover:bg-teal-500 active:bg-teal-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95"
+            >
+              <Copy size={14} />
+              Copy
+            </button>
+            <button
+              onClick={() => setShowStatsModal(true)}
+              className="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95"
+            >
+              <BarChart3 size={14} />
+              Stats
+            </button>
+            <button
+              onClick={() => setShowPlaytest(!showPlaytest)}
+              className="bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95"
+            >
+              <Shuffle size={14} />
+              Test
+            </button>
+          </div>
+
           {/* Deck validation indicators */}
           {(deckValidation.errors.length > 0 || deckValidation.warnings.length > 0) && (
-            <div className="mb-3 p-2 bg-slate-800 rounded border border-slate-600 space-y-1">
+            <div className="space-y-1">
               {deckValidation.errors.map((error, i) => (
                 <div
                   key={i}
                   className="flex items-center gap-2 text-red-300 text-xs bg-red-900/20 p-2 rounded border border-red-500/30"
                 >
-                  <XCircle size={12} className="text-red-400" />
-                  {error}
+                  <XCircle size={12} className="text-red-400 shrink-0" />
+                  <span className="truncate">{error}</span>
                 </div>
               ))}
               {deckValidation.warnings.map((warning, i) => (
@@ -1842,168 +1818,185 @@ export default function DeckbuilderPage() {
                   key={i}
                   className="flex items-center gap-2 text-amber-300 text-xs bg-amber-900/20 p-2 rounded border border-amber-500/30"
                 >
-                  <AlertTriangle size={12} className="text-amber-400" />
-                  {warning}
+                  <AlertTriangle size={12} className="text-amber-400 shrink-0" />
+                  <span className="truncate">{warning}</span>
                 </div>
               ))}
               {deckValidation.isValid && deckValidation.warnings.length === 0 && deckValidation.isTournamentLegal && (
                 <div className="flex items-center gap-2 text-emerald-300 text-xs bg-emerald-900/20 p-2 rounded border border-emerald-500/30">
-                  <CheckCircle size={12} className="text-emerald-400" />
-                  Tournament legal deck
+                  <CheckCircle size={12} className="text-emerald-400 shrink-0" />
+                  <span>Tournament legal deck</span>
                 </div>
               )}
             </div>
           )}
-        </div>
 
-        {/* Playtesting panel */}
-        {showPlaytest && (
-          <div className="mb-3 p-3 bg-slate-800 rounded border border-slate-600 animate-in slide-in-from-top-4 fade-in-0 duration-200">
-            <h3 className="text-base font-bold mb-2 text-amber-300">Playtesting Suite</h3>
-            <div className="flex gap-2 mb-2">
-              <button
-                onClick={drawHand}
-                className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg group"
-                disabled={mainDeck.length === 0}
-              >
-                <span className="flex items-center gap-1">
+          {/* Playtesting panel */}
+          {showPlaytest && (
+            <div className="p-3 bg-slate-700/50 rounded border border-slate-600">
+              <h3 className="text-sm font-bold mb-2 text-amber-300">Playtesting</h3>
+              <div className="flex flex-wrap gap-2 mb-2">
+                <button
+                  onClick={drawHand}
+                  className="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+                  disabled={mainDeck.length === 0}
+                >
                   New Game
-                  <span className="transition-all duration-200 group-hover:rotate-12">(Draw 5)</span>
-                </span>
-              </button>
-              <button
-                onClick={drawCard}
-                className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg disabled:bg-slate-600 disabled:opacity-50"
-                disabled={mainDeck.length === 0 || deckForDrawing.length === 0}
-              >
-                Draw Card
-              </button>
-              <button
-                onClick={() => {
-                  setHand([])
-                  setDeckForDrawing([])
-                  setHasUsedMulligan(false)
-                  setSelectedMulliganCards([])
-                }}
-                className="bg-red-600 hover:bg-red-500 active:bg-red-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg group"
-              >
-                <span className="transition-all duration-200 group-hover:rotate-180">Reset</span>
-              </button>
-              {hand.length > 0 && (
-                <button
-                  onClick={() => setShowHandModal(true)}
-                  className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg animate-in slide-in-from-right-4 duration-300"
-                >
-                  View Hand ({hand.length})
                 </button>
-              )}
-              {hand.length === 5 && !hasUsedMulligan && (
                 <button
-                  onClick={() => setShowMulliganModal(true)}
-                  className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg animate-in slide-in-from-right-4 duration-300 animate-pulse"
+                  onClick={drawCard}
+                  className="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 disabled:bg-slate-600 disabled:opacity-50"
+                  disabled={mainDeck.length === 0 || deckForDrawing.length === 0}
                 >
-                  Mulligan
+                  Draw
                 </button>
-              )}
+                <button
+                  onClick={() => {
+                    setHand([])
+                    setDeckForDrawing([])
+                    setHasUsedMulligan(false)
+                    setSelectedMulliganCards([])
+                  }}
+                  className="bg-red-600 hover:bg-red-500 active:bg-red-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+                >
+                  Reset
+                </button>
+                {hand.length > 0 && (
+                  <button
+                    onClick={() => setShowHandModal(true)}
+                    className="bg-violet-600 hover:bg-violet-500 active:bg-violet-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+                  >
+                    Hand ({hand.length})
+                  </button>
+                )}
+                {hand.length === 5 && !hasUsedMulligan && (
+                  <button
+                    onClick={() => setShowMulliganModal(true)}
+                    className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 animate-pulse"
+                  >
+                    Mulligan
+                  </button>
+                )}
+              </div>
+              <div className="text-xs text-slate-400">
+                {deckForDrawing.length > 0 && (
+                  <span>
+                    Cards left: <span className="font-medium text-slate-300">{deckForDrawing.length}</span>
+                  </span>
+                )}
+                {mainDeck.length === 0 && <span className="italic">Add cards to main deck to start playtesting</span>}
+              </div>
             </div>
-            <div className="text-xs text-slate-400 transition-all duration-300">
-              {deckForDrawing.length > 0 && (
-                <span className="animate-in slide-in-from-left-4 duration-500">
-                  Cards left in deck: <span className="font-medium text-slate-300">{deckForDrawing.length}</span>
-                </span>
-              )}
-              {mainDeck.length === 0 && (
-                <span className="italic animate-pulse">Add cards to your main deck to start playtesting</span>
-              )}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
-        {/* Card grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {filteredCards.map((card, index) => (
-            <CardGridItem
-              key={`${card.name}-${index}`}
-              card={card}
-              onAddToDeck={addCardToDeck}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Filter panel */}
+        <aside className="w-full md:w-80 p-3 shrink-0 border-r border-slate-700 overflow-y-auto">
+          <FilterPanel
+            filters={filters}
+            setFilters={setFilters}
+            toggleKeyword={toggleKeyword}
+            cards={cards}
+            expansions={expansions}
+          />
+        </aside>
+
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Card grid */}
+          <div className="flex-1 overflow-y-auto p-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {filteredCards.map((card, index) => (
+                <CardGridItem
+                  key={`${card.name}-${index}`}
+                  card={card}
+                  onAddToDeck={addCardToDeck}
+                  onPreview={setPreviewCard}
+                  onHover={setHoveredCard}
+                />
+              ))}
+            </div>
+
+            {filteredCards.length === 0 && (
+              <div className="text-center text-slate-400 mt-8 py-6">
+                <Search size={40} className="mx-auto mb-3 text-slate-500" />
+                <p className="text-base">No cards match your current filters</p>
+                <p className="text-sm text-slate-500 mt-1">Try adjusting your search criteria</p>
+              </div>
+            )}
+          </div>
+
+          {/* Bottom deck area */}
+          <div className="bg-slate-900 border-t border-slate-700 p-3 max-h-80 overflow-y-auto shrink-0">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold text-amber-300">Deck Lists</h2>
+              <select
+                value={deckSort}
+                onChange={(e) => setDeckSort(e.target.value as SortOption)}
+                className="bg-slate-800 text-white text-xs p-1 rounded border border-slate-600 focus:border-amber-400 transition-all duration-200"
+              >
+                <option value="name">Name</option>
+                <option value="type">Type</option>
+                <option value="tape_cost">Cost</option>
+                <option value="attack">Attack</option>
+                <option value="health">Health</option>
+              </select>
+            </div>
+
+            <DeckList
+              title="Main Deck"
+              cards={sortedDeckCards(mainDeck)}
+              onRemove={(c) => removeCard(c, "main")}
               onPreview={setPreviewCard}
-              onHover={setHoveredCard}
+              validation={deckValidation}
+              deckType="main"
+              onAddToDeck={addCardToDeck}
+              isCollapsed={collapsedDecks.main}
+              onToggleCollapse={() => setCollapsedDecks((prev) => ({ ...prev, main: !prev.main }))}
             />
-          ))}
-        </div>
-
-        {filteredCards.length === 0 && (
-          <div className="text-center text-slate-400 mt-8 py-6">
-            <Search size={40} className="mx-auto mb-3 text-slate-500" />
-            <p className="text-base">No cards match your current filters</p>
-            <p className="text-sm text-slate-500 mt-1">Try adjusting your search criteria</p>
+            <DeckList
+              title="Tape Deck"
+              cards={sortedDeckCards(tapeDeck)}
+              onRemove={(c) => removeCard(c, "tape")}
+              onPreview={setPreviewCard}
+              validation={deckValidation}
+              deckType="tape"
+              onAddToDeck={addCardToDeck}
+              isCollapsed={collapsedDecks.tape}
+              onToggleCollapse={() => setCollapsedDecks((prev) => ({ ...prev, tape: !prev.tape }))}
+            />
+            <DeckList
+              title="Side Deck"
+              cards={sortedDeckCards(sideDeck)}
+              onRemove={(c) => removeCard(c, "side")}
+              onPreview={setPreviewCard}
+              validation={deckValidation}
+              deckType="side"
+              onAddToDeck={addCardToDeck}
+              isCollapsed={collapsedDecks.side}
+              onToggleCollapse={() => setCollapsedDecks((prev) => ({ ...prev, side: !prev.side }))}
+            />
           </div>
-        )}
-      </section>
-
-      {/* Right side deck list */}
-      <aside className="w-full lg:w-72 bg-slate-900 p-4 border-l border-slate-700 overflow-y-auto overflow-x-hidden h-full lg:sticky lg:top-0">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-amber-300 truncate">Deck Lists</h2>
-          <select
-            value={deckSort}
-            onChange={(e) => setDeckSort(e.target.value as SortOption)}
-            className="bg-slate-800 text-white text-xs p-1 rounded border border-slate-600 focus:border-amber-400 transition-all duration-200"
-          >
-            <option value="name">Name</option>
-            <option value="type">Type</option>
-            <option value="tape_cost">Cost</option>
-            <option value="attack">Attack</option>
-            <option value="health">Health</option>
-          </select>
         </div>
-
-        <DeckList
-          title="Main Deck"
-          cards={sortedDeckCards(mainDeck)}
-          onRemove={(c) => removeCard(c, "main")}
-          onPreview={setPreviewCard}
-          validation={deckValidation}
-          deckType="main"
-          onAddToDeck={addCardToDeck}
-        />
-        <DeckList
-          title="Tape Deck"
-          cards={sortedDeckCards(tapeDeck)}
-          onRemove={(c) => removeCard(c, "tape")}
-          onPreview={setPreviewCard}
-          validation={deckValidation}
-          deckType="tape"
-          onAddToDeck={addCardToDeck}
-        />
-        <DeckList
-          title="Side Deck"
-          cards={sortedDeckCards(sideDeck)}
-          onRemove={(c) => removeCard(c, "side")}
-          onPreview={setPreviewCard}
-          validation={deckValidation}
-          deckType="side"
-          onAddToDeck={addCardToDeck}
-        />
-      </aside>
+      </div>
 
       {/* Stats modal */}
       {showStatsModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 animate-in fade-in-0 duration-300"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={() => setShowStatsModal(false)}
         >
           <div
-            className="bg-slate-900 text-white p-6 rounded-lg w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto border border-indigo-500/30 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+            className="bg-slate-900 text-white p-4 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-indigo-500/30"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-indigo-300 animate-in slide-in-from-left-4 duration-500">
-                Deck Statistics
-              </h2>
+              <h2 className="text-lg font-bold text-indigo-300">Deck Statistics</h2>
               <button
                 onClick={() => setShowStatsModal(false)}
-                className="text-slate-400 hover:text-white text-xl hover:bg-red-500/20 rounded p-1 transition-all duration-200 hover:scale-110 hover:rotate-90"
+                className="text-slate-400 hover:text-white text-xl hover:bg-red-500/20 rounded p-1 transition-all duration-200"
               >
                 ✕
               </button>
@@ -2011,145 +2004,83 @@ export default function DeckbuilderPage() {
 
             {deckStats.totalCards > 0 ? (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-blue-900/30 p-4 rounded border border-blue-500/20">
-                    <h4 className="font-medium mb-3 text-blue-200 text-base">Tape Cost Distribution</h4>
-                    <div className="h-48 mb-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="bg-blue-900/30 p-3 rounded border border-blue-500/20">
+                    <h4 className="font-medium mb-2 text-blue-200 text-sm">Tape Cost Distribution</h4>
+                    <div className="h-32 mb-2">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                           data={Object.entries(deckStats.tapeCostDistribution).map(([cost, count]) => ({
-                            cost: `Cost ${cost}`,
+                            cost: `${cost}`,
                             count,
                           }))}
                         >
-                          <XAxis dataKey="cost" tick={{ fontSize: 12, fill: "#93c5fd" }} />
-                          <YAxis tick={{ fontSize: 12, fill: "#93c5fd" }} />
+                          <XAxis dataKey="cost" tick={{ fontSize: 10, fill: "#93c5fd" }} />
+                          <YAxis tick={{ fontSize: 10, fill: "#93c5fd" }} />
                           <Bar dataKey="count" fill="#3b82f6" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-blue-500/20 text-sm text-blue-200">
-                      Average Cost: <span className="font-medium text-blue-300">{deckStats.averageTapeCost}</span>
+                    <div className="text-xs text-blue-200">
+                      Avg Cost: <span className="font-medium text-blue-300">{deckStats.averageTapeCost}</span>
                     </div>
                   </div>
 
-                  <div className="bg-emerald-900/30 p-4 rounded border border-emerald-500/20">
-                    <h4 className="font-medium mb-3 text-emerald-200 text-base">Type Breakdown</h4>
-                    <div className="h-48 mb-3">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={Object.entries(deckStats.typeBreakdown).map(([type, count]) => ({
-                              name: type,
-                              value: count,
-                            }))}
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={80}
-                            fill="#10b981"
-                            dataKey="value"
-                            label={(entry: any) =>
-                              `${entry.name} ${((entry.value / deckStats.totalCards) * 100).toFixed(0)}%`
-                            }
-                            labelLine={false}
-                            fontSize={10}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
+                  <div className="bg-emerald-900/30 p-3 rounded border border-emerald-500/20">
+                    <h4 className="font-medium mb-2 text-emerald-200 text-sm">Type Breakdown</h4>
                     <div className="space-y-1">
                       {Object.entries(deckStats.typeBreakdown).map(([type, count]) => (
-                        <div key={type} className="flex justify-between text-sm">
-                          <span className="text-slate-300">{type}:</span>
-                          <span className="text-emerald-300 font-medium">{count}</span>
+                        <div key={type} className="flex justify-between text-xs">
+                          <span className="text-slate-300 truncate">{type}:</span>
+                          <span className="text-emerald-300 font-medium ml-2">{count}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-
-                  <div className="bg-amber-900/30 p-4 rounded border border-amber-500/20">
-                    <h4 className="font-medium mb-3 text-amber-200 text-base">Deck Overview</h4>
-                    <div className="h-48 mb-3">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={[
-                            { deck: "Main", count: mainDeck.length },
-                            { deck: "Tape", count: tapeDeck.length },
-                            { deck: "Side", count: sideDeck.length },
-                          ]}
-                        >
-                          <XAxis dataKey="deck" tick={{ fontSize: 12, fill: "#fbbf24" }} />
-                          <YAxis tick={{ fontSize: 12, fill: "#fbbf24" }} />
-                          <Bar dataKey="count" fill="#f59e0b" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-slate-300">Main Deck:</span>
-                        <span className="text-amber-300 font-medium">{mainDeck.length}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-300">Tape Deck:</span>
-                        <span className="text-amber-300 font-medium">{tapeDeck.length}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-300">Side Deck:</span>
-                        <span className="text-amber-300 font-medium">{sideDeck.length}</span>
-                      </div>
-                      <div className="flex justify-between font-medium pt-2 border-t border-amber-500/20">
-                        <span className="text-amber-200">Total Cards:</span>
-                        <span className="text-amber-300">{mainDeck.length + tapeDeck.length + sideDeck.length}</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-slate-800/50 rounded border border-slate-600/30">
-                  <h4 className="font-medium mb-3 text-slate-200 text-base">Deck Insights</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-slate-400">Most Common Type:</span>
-                      <span className="ml-2 text-white font-medium">
-                        {
-                          Object.entries(deckStats.typeBreakdown).reduce(
-                            (a, b) => (a[1] > b[1] ? a : b),
-                            ["None", 0],
-                          )[0]
-                        }
-                      </span>
+                <div className="bg-slate-800/50 rounded border border-slate-600/30 p-3">
+                  <h4 className="font-medium mb-2 text-slate-200 text-sm">Deck Overview</h4>
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Main:</span>
+                        <span className="text-white font-medium">{mainDeck.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Tape:</span>
+                        <span className="text-white font-medium">{tapeDeck.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Side:</span>
+                        <span className="text-white font-medium">{sideDeck.length}</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-slate-400">Card Diversity:</span>
-                      <span className="ml-2 text-white font-medium">
-                        {Object.keys(deckStats.typeBreakdown).length} different types
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Main Deck Ratio:</span>
-                      <span className="ml-2 text-white font-medium">
-                        {mainDeck.length + sideDeck.length > 0
-                          ? `${((mainDeck.length / (mainDeck.length + sideDeck.length)) * 100).toFixed(0)}% main / ${((sideDeck.length / (mainDeck.length + sideDeck.length)) * 100).toFixed(0)}% side`
-                          : "No cards in main/side decks"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400">Deck Status:</span>
-                      <span className="ml-2 font-medium">
-                        {deckValidation.isTournamentLegal ? (
-                          <span className="text-emerald-400">✓ Tournament Legal</span>
-                        ) : (
-                          <span className="text-red-400">✗ Not Tournament Legal</span>
-                        )}
-                      </span>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Total:</span>
+                        <span className="text-white font-medium">
+                          {mainDeck.length + tapeDeck.length + sideDeck.length}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Status:</span>
+                        <span className="font-medium">
+                          {deckValidation.isTournamentLegal ? (
+                            <span className="text-emerald-400">✓ Legal</span>
+                          ) : (
+                            <span className="text-red-400">✗ Invalid</span>
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </>
             ) : (
-              <div className="text-center text-slate-400 py-12">
+              <div className="text-center text-slate-400 py-8">
                 <BarChart3 size={48} className="mx-auto mb-4 text-slate-500" />
-                <p className="text-lg mb-2">No deck data to analyze</p>
+                <p className="text-base mb-2">No deck data to analyze</p>
                 <p className="text-sm">Add some cards to your deck to see statistics!</p>
               </div>
             )}
@@ -2160,78 +2091,72 @@ export default function DeckbuilderPage() {
       {/* Mulligan modal */}
       {showMulliganModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 animate-in fade-in-0 duration-300"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={() => setShowMulliganModal(false)}
         >
           <div
-            className="bg-slate-900 text-white p-6 rounded-lg w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto border border-orange-500/30 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+            className="bg-slate-900 text-white p-4 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-orange-500/30"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-orange-300 animate-in slide-in-from-left-4 duration-500">
-                Mulligan Phase
-              </h2>
+              <h2 className="text-lg font-bold text-orange-300">Mulligan Phase</h2>
               <button
                 onClick={() => setShowMulliganModal(false)}
-                className="text-slate-400 hover:text-white text-xl hover:bg-red-500/20 rounded p-1 transition-all duration-200 hover:scale-110 hover:rotate-90"
+                className="text-slate-400 hover:text-white text-xl hover:bg-red-500/20 rounded p-1 transition-all duration-200"
               >
                 ✕
               </button>
             </div>
 
-            <div className="mb-4 animate-in slide-in-from-top-4 duration-700">
-              <p className="text-slate-300 text-center">
+            <div className="mb-4">
+              <p className="text-slate-300 text-center text-sm">
                 Choose which cards to mulligan. Selected cards will go to the{" "}
                 <span className="text-orange-300 font-medium">bottom of your deck</span> and you will draw that many new
                 cards.
               </p>
-              <p className="text-slate-400 text-center text-sm mt-1">You can select 0-5 cards to mulligan.</p>
             </div>
 
-            <div className="grid grid-cols-5 gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-4">
               {hand.map((card, index) => (
                 <div
                   key={index}
-                  className={`cursor-pointer transition-all duration-300 relative animate-in zoom-in-0 slide-in-from-bottom-4 ${
+                  className={`cursor-pointer transition-all duration-300 relative ${
                     selectedMulliganCards.includes(index)
                       ? "ring-2 ring-orange-400 bg-orange-900/20 scale-95"
                       : "hover:scale-105"
                   }`}
-                  style={{ animationDelay: `${index * 100}ms` }}
                   onClick={() => toggleMulliganCard(index)}
-                  title={`${card.name} - Click to ${selectedMulliganCards.includes(index) ? "keep" : "mulligan"}`}
+                  title={`${card.name} - Tap to ${selectedMulliganCards.includes(index) ? "keep" : "mulligan"}`}
                 >
                   <Card card={card} />
                   {selectedMulliganCards.includes(index) && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-orange-500/80 rounded-lg animate-in fade-in-0 zoom-in-95 duration-200">
-                      <span className="text-white font-bold text-sm bg-orange-700 px-2 py-1 rounded animate-pulse">
-                        MULLIGAN
-                      </span>
+                    <div className="absolute inset-0 flex items-center justify-center bg-orange-500/80 rounded-lg">
+                      <span className="text-white font-bold text-xs bg-orange-700 px-2 py-1 rounded">MULLIGAN</span>
                     </div>
                   )}
                 </div>
               ))}
             </div>
 
-            <div className="flex items-center justify-between animate-in slide-in-from-bottom-4 duration-500">
-              <div className="text-sm text-slate-400 transition-all duration-300">
+            <div className="flex flex-col gap-2">
+              <div className="text-sm text-slate-400 text-center">
                 {selectedMulliganCards.length === 0
                   ? "No cards selected - you will keep your current hand"
                   : selectedMulliganCards.length === 1
                     ? "1 card selected for mulligan"
                     : `${selectedMulliganCards.length} cards selected for mulligan`}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-center">
                 <button
                   onClick={keepHand}
-                  className="bg-green-600 hover:bg-green-500 active:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg"
+                  className="bg-green-600 hover:bg-green-500 active:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                   Keep Hand
                 </button>
                 <button
                   onClick={performMulligan}
                   disabled={selectedMulliganCards.length === 0}
-                  className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:bg-slate-600 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95 hover:shadow-lg"
+                  className="bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:bg-slate-600 text-white px-4 py-2 rounded text-sm font-medium transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
                 >
                   {selectedMulliganCards.length === 0 ? "Select Cards" : `Mulligan ${selectedMulliganCards.length}`}
                 </button>
@@ -2244,15 +2169,15 @@ export default function DeckbuilderPage() {
       {/* Hand preview modal */}
       {showHandModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={() => setShowHandModal(false)}
         >
           <div
-            className="bg-slate-900 text-white p-6 rounded-lg w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto border border-violet-500/30"
+            className="bg-slate-900 text-white p-4 rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto border border-violet-500/30"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-amber-300">Your Hand ({hand.length} cards)</h2>
+              <h2 className="text-lg font-bold text-amber-300">Your Hand ({hand.length} cards)</h2>
               <div className="flex items-center gap-2">
                 {hand.length === 5 && !hasUsedMulligan && (
                   <button
@@ -2270,7 +2195,7 @@ export default function DeckbuilderPage() {
                   className="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200"
                   disabled={deckForDrawing.length === 0}
                 >
-                  Draw Card
+                  Draw
                 </button>
                 {deckForDrawing.length > 0 && (
                   <span className="text-xs text-slate-400">({deckForDrawing.length} left)</span>
@@ -2287,25 +2212,15 @@ export default function DeckbuilderPage() {
             {hand.length > 0 && (
               <div>
                 <p className="text-slate-300 mb-4 text-center text-sm">
-                  <span className="text-violet-300 font-medium">Click any card to discard it from your hand</span>
+                  <span className="text-violet-300 font-medium">Tap any card to discard it from your hand</span>
                 </p>
-                <div
-                  className={`grid gap-3 ${
-                    hand.length <= 5
-                      ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-                      : hand.length <= 7
-                        ? "grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7"
-                        : hand.length <= 10
-                          ? "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-10"
-                          : "grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 xl:grid-cols-9 2xl:grid-cols-12"
-                  }`}
-                >
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {hand.map((card, index) => (
                     <div
                       key={index}
                       className="cursor-pointer hover:scale-105 transition-all duration-200"
                       onClick={() => removeFromHand(index)}
-                      title={`${card.name} - Click to discard`}
+                      title={`${card.name} - Tap to discard`}
                     >
                       <Card card={card} />
                     </div>
@@ -2327,15 +2242,15 @@ export default function DeckbuilderPage() {
       {/* Import modal */}
       {showImportModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={() => setShowImportModal(false)}
         >
           <div
-            className="bg-slate-900 text-white p-6 rounded-lg w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto border border-cyan-500/30"
+            className="bg-slate-900 text-white p-4 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-cyan-500/30"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-cyan-300">Import Deck</h2>
+              <h2 className="text-lg font-bold text-cyan-300">Import Deck</h2>
               <button
                 onClick={() => setShowImportModal(false)}
                 className="text-slate-400 hover:text-white text-xl hover:bg-red-500/20 rounded p-1 transition-all duration-200"
@@ -2345,8 +2260,8 @@ export default function DeckbuilderPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 bg-slate-800/50 rounded border border-slate-600/30">
-                <h3 className="text-lg font-medium text-slate-200 mb-2">Import from Text File or Paste</h3>
+              <div className="p-3 bg-slate-800/50 rounded border border-slate-600/30">
+                <h3 className="text-base font-medium text-slate-200 mb-2">Import from Text</h3>
                 <p className="text-sm text-slate-400 mb-3">
                   Upload a deck file (.txt) or paste a deck list in the following format:
                 </p>
@@ -2397,7 +2312,7 @@ export default function DeckbuilderPage() {
                     value={importText}
                     onChange={(e) => setImportText(e.target.value)}
                     placeholder="Paste your deck list here..."
-                    className="w-full h-48 p-3 bg-slate-800 text-white rounded border border-slate-600 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/20 transition-all duration-200 text-sm font-mono resize-none"
+                    className="w-full h-32 p-3 bg-slate-800 text-white rounded border border-slate-600 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/20 transition-all duration-200 text-sm font-mono resize-none"
                   />
                 </div>
 
@@ -2426,7 +2341,6 @@ export default function DeckbuilderPage() {
                   <div>• Text format is flexible - section headers can be "Main Deck", "Tape Deck", "Side Deck"</div>
                   <div>• Card formats: "3x Card Name", "3 Card Name", or "Card Name x3"</div>
                   <div>• Card names must match exactly (case-insensitive)</div>
-                  <div>• Only tournament legal decks can be exported</div>
                 </div>
               </div>
             </div>
@@ -2437,11 +2351,11 @@ export default function DeckbuilderPage() {
       {/* Card preview modal */}
       {previewCard && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={() => setPreviewCard(null)}
         >
           <div
-            className="bg-slate-900 text-white p-6 rounded-lg w-[26rem] max-w-full relative max-h-[90vh] overflow-y-auto border border-violet-500/30"
+            className="bg-slate-900 text-white p-4 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto border border-violet-500/30"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -2450,7 +2364,7 @@ export default function DeckbuilderPage() {
             >
               ✕
             </button>
-            <h2 className="text-xl font-bold mb-3 text-amber-300 pr-10">{previewCard.name}</h2>
+            <h2 className="text-lg font-bold mb-3 text-amber-300 pr-10">{previewCard.name}</h2>
             {previewCard.imageUrl && (
               <Image
                 src={previewCard.imageUrl || "/placeholder.svg"}
@@ -2506,12 +2420,14 @@ export default function DeckbuilderPage() {
               {previewCard.effect && (
                 <div className="p-2 bg-emerald-900/30 rounded border border-emerald-500/30">
                   <span className="text-emerald-300 font-medium block mb-1">Effect:</span>
-                  <span className="text-emerald-100 leading-relaxed">{previewCard.effect}</span>
+                  <span className="text-emerald-100 leading-relaxed text-xs">{previewCard.effect}</span>
                 </div>
               )}
               {previewCard.flavor_text && (
                 <div className="p-2 bg-slate-800/50 rounded border border-slate-600/30">
-                  <span className="text-slate-300 italic leading-relaxed">&quot;{previewCard.flavor_text}&quot;</span>
+                  <span className="text-slate-300 italic leading-relaxed text-xs">
+                    &quot;{previewCard.flavor_text}&quot;
+                  </span>
                 </div>
               )}
               {(previewCard.artist || previewCard.expansion || previewCard.rarity || previewCard.id) && (
@@ -2519,25 +2435,25 @@ export default function DeckbuilderPage() {
                   {previewCard.artist && (
                     <div className="p-2 bg-slate-800/30 rounded">
                       <span className="text-slate-400 text-xs block">Artist</span>
-                      <span className="text-slate-200 font-medium">{previewCard.artist}</span>
+                      <span className="text-slate-200 font-medium text-xs">{previewCard.artist}</span>
                     </div>
                   )}
                   {previewCard.expansion && (
                     <div className="p-2 bg-slate-800/30 rounded">
                       <span className="text-slate-400 text-xs block">Expansion</span>
-                      <span className="text-slate-200 font-medium">{previewCard.expansion}</span>
+                      <span className="text-slate-200 font-medium text-xs">{previewCard.expansion}</span>
                     </div>
                   )}
                   {previewCard.rarity && (
                     <div className="p-2 bg-slate-800/30 rounded">
                       <span className="text-slate-400 text-xs block">Rarity</span>
-                      <span className="text-yellow-400 font-medium">{previewCard.rarity}</span>
+                      <span className="text-yellow-400 font-medium text-xs">{previewCard.rarity}</span>
                     </div>
                   )}
                   {previewCard.id && (
                     <div className="p-2 bg-slate-800/30 rounded">
                       <span className="text-slate-400 text-xs block">Card ID</span>
-                      <span className="text-slate-200 font-medium">{previewCard.id}</span>
+                      <span className="text-slate-200 font-medium text-xs">{previewCard.id}</span>
                     </div>
                   )}
                 </div>
@@ -2562,7 +2478,7 @@ export default function DeckbuilderPage() {
                         addCardToDeck(previewCard, "main", previewQuantity)
                         setPreviewCard(null)
                       }}
-                      className="bg-green-600 hover:bg-green-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
+                      className="bg-green-600 hover:bg-green-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95"
                     >
                       Add {previewQuantity}x to Main
                     </button>
@@ -2574,7 +2490,7 @@ export default function DeckbuilderPage() {
                         addCardToDeck(previewCard, "tape", previewQuantity)
                         setPreviewCard(null)
                       }}
-                      className="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
+                      className="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95"
                     >
                       Add {previewQuantity}x to Tape
                     </button>
@@ -2585,7 +2501,7 @@ export default function DeckbuilderPage() {
                       addCardToDeck(previewCard, "side", previewQuantity)
                       setPreviewCard(null)
                     }}
-                    className="bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95 hover:shadow-lg"
+                    className="bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1 hover:scale-105 active:scale-95"
                   >
                     Add {previewQuantity}x to Side
                   </button>
