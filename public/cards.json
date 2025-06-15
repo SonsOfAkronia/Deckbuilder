@@ -3137,21 +3137,7 @@
     "artist": "Bendy",
     "imageUrl": "https://pub-97dea38f85a34b80b381432fee72d609.r2.dev/Tommy C, LolCow Slayer - DC.png"
   },
-  {
-    "name": "Raxxmus Arrives",
-    "tape_cost": 6,
-    "type": "Goblin Trickery",
-    "subtype": "",
-    "effect": "Draw 3 cards, gain 50 Lifepoints and deal 50 Damage to any player and send any character to the owner's Scrap Pile",
-    "keywords": "",
-    "flavor_text": "Beware of leaving your stylus out on Christmas Eve, the Raxxmus may come and leave residue in his wake.",
-    "attack": "",
-    "health": "",
-    "expansion": "WTF Series - Horror House",
-    "id": "52/79",
-    "artist": "LilMinkurs",
-    "imageUrl": "https://pub-97dea38f85a34b80b381432fee72d609.r2.dev/Raxxmus Arrives - DC.png"
-  },
+
   {
     "name": "Smokey McDrac",
     "tape_cost": 4,
